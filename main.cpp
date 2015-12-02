@@ -1,7 +1,5 @@
 // ConsoleApplication1.cpp : Defines the entry point for the console application.
 //
-
-
 #include <stdlib.h>
 
 #ifdef __cplusplus
@@ -10,6 +8,7 @@
     #include <stdlib.h>
 #endif
 #include<iostream>
+#include <stdio.h>
 
 #include <SDL/SDL.h>
 
@@ -26,16 +25,16 @@ void setPixel(int x, int y,SDL_Surface* screen, Uint8 R, Uint8 G, Uint8 B)
 {
   if ((screen!=NULL) && (x>=0) && (x<screen->w) && (y>=0) && (y<screen->h))
   {
-    /* Zamieniamy poszczegÃ³lne skÂ³adowe koloru na format koloru pixela */
+    /* Zamieniamy poszczególne sk³adowe koloru na format koloru pixela */
     Uint32 pixel = SDL_MapRGB(screen->format, R, G, B);
 
-    /* Pobieramy informacji ile bajtÃ³w zajmuje jeden pixel */
+    /* Pobieramy informacji ile bajtów zajmuje jeden pixel */
     int bpp = screen->format->BytesPerPixel;
 
     /* Obliczamy adres pixela */
     Uint8 *p = (Uint8 *)screen->pixels + y * screen->pitch + x * bpp;
 
-    /* Ustawiamy wartoÅ“Ã¦ pixela, w zaleÂ¿noÅ“ci od formatu powierzchni*/
+    /* Ustawiamy wartoœæ pixela, w zale¿noœci od formatu powierzchni*/
     switch(bpp)
     {
         case 1: //8-bit
@@ -103,21 +102,61 @@ bool LoadBMP(char* filepath, conv_bmp* new_bmp)  {
 		for(int j=0;j<bmp->w;j++)
 		{
 			SDL_Color color = getPixel(j, i, bmp);
-			new_bmp->red_color[i][j] = color.r ;   //nie jestem pewien czy ja mam to skrocic do 4 bitow czy w przy algorytmach kompresji, spytam go w czwartek.
-			new_bmp->green_color[i][j] = color.g ;
-			new_bmp->blue_color[i][j] = color.b ;
+			new_bmp->red_color[i][j] = (color.r/16);
+			new_bmp->green_color[i][j] = (color.g/16);
+			new_bmp->blue_color[i][j] = (color.b/16);
 			printf("Pixel Color -> R: %d,  G: %d,  B: %d, \n", new_bmp->red_color[i][j], new_bmp->green_color[i][j], new_bmp->blue_color[i][j]);
 		}
 	}
 		if(bmp) SDL_FreeSurface(bmp);
 }
 
+void SaveToBinary(char* filepath, conv_bmp* new_bmp) {
+    FILE* pFile;
+    pFile = fopen(filepath, "wb");  //wb = write and binary
+    fwrite(&new_bmp->height,sizeof(int),1, pFile);  //write header
+    fwrite(&new_bmp->width,sizeof(int),1, pFile);
+    fwrite(&new_bmp->bitsperpixel,sizeof(Uint8),1, pFile);
+    for(int i=0;i<new_bmp->height;i++) {            //write pixel colors in order RGB
+        for(int j=0;j<new_bmp->width;j++) {
+                fwrite(&new_bmp->red_color[i][j],sizeof(Uint8),1,pFile);
+                fwrite(&new_bmp->green_color[i][j],sizeof(Uint8),1,pFile);
+                fwrite(&new_bmp->blue_color[i][j],sizeof(Uint8),1,pFile);
+        }
+    }
+    fclose(pFile);
+}
+
+void LoadFromBinary(char* filepath, conv_bmp* new_bmp) {
+    FILE* pFile;
+    pFile = fopen(filepath, "rb");  //rb = read and binary
+    fread(&new_bmp->height,sizeof(int),1, pFile);  //read header
+    fread(&new_bmp->width,sizeof(int),1, pFile);
+    fread(&new_bmp->bitsperpixel,sizeof(Uint8),1, pFile);
+    new_bmp->red_color = (Uint8**)malloc(sizeof(Uint8*) * new_bmp->height);  //allocate memory for colors
+	new_bmp->green_color = (Uint8**)malloc(sizeof(Uint8*) * new_bmp->height);
+	new_bmp->blue_color = (Uint8**)malloc(sizeof(Uint8*) * new_bmp->height);
+	for(int i=0;i<new_bmp->height;i++)
+	{
+		new_bmp->red_color[i] = (Uint8*)malloc(sizeof(Uint8) * new_bmp->width);
+		new_bmp->green_color[i] = (Uint8*)malloc(sizeof(Uint8) * new_bmp->width);
+		new_bmp->blue_color[i] = (Uint8*)malloc(sizeof(Uint8) * new_bmp->width);
+        for(int j=0; j<new_bmp->width;j++) {
+	        fread(&new_bmp->red_color[i][j],sizeof(Uint8),1,pFile);   //read colors
+            fread(&new_bmp->green_color[i][j],sizeof(Uint8),1,pFile);
+            fread(&new_bmp->blue_color[i][j],sizeof(Uint8),1,pFile);
+        }
+	}
+    fclose(pFile);
+}
 
 int main( int argc, char** argv )
 {
     SDL_Surface* test = NULL;
     conv_bmp new_bmp;
-    LoadBMP("cb.bmp",&new_bmp);
+    //LoadBMP("images.bmp",&new_bmp);
+    //SaveToBinary("file.binary",&new_bmp);
+    LoadFromBinary("file.binary",&new_bmp);
 
 	    if ( SDL_Init( SDL_INIT_VIDEO ) < 0 )
     {
@@ -127,7 +166,7 @@ int main( int argc, char** argv )
 	atexit(SDL_Quit);
 
     // create a new window
-    test = SDL_SetVideoMode(new_bmp.width, new_bmp.height, 8,
+    test = SDL_SetVideoMode(new_bmp.width, new_bmp.height, 32,
                                            SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_ANYFORMAT);
     if ( !test )
     {
@@ -155,10 +194,19 @@ int main( int argc, char** argv )
                     // exit if ESCAPE is pressed
                     if (event.key.keysym.sym == SDLK_ESCAPE)
                         done = true;
-                    if (event.key.keysym.sym == SDLK_1) {
+                    if (event.key.keysym.sym == SDLK_1) {    //4 biotwy obraz
                             for(int i=0;i<new_bmp.width;i++) {
                                 for(int j=0;j<new_bmp.height;j++) {
-                                    setPixel(i,j,test,new_bmp.red_color[j][i],new_bmp.green_color[j][i],new_bmp.green_color[j][i]);
+                                    setPixel(i,j,test,new_bmp.red_color[j][i]*16,new_bmp.green_color[j][i]*16,new_bmp.blue_color[j][i]*16);
+                                }
+                            }
+                            SDL_Flip(test);
+                     }
+                     if (event.key.keysym.sym == SDLK_2) {   //4 bitowa skala szarosci
+                            for(int i=0;i<new_bmp.width;i++) {
+                                for(int j=0;j<new_bmp.height;j++) {
+                                    Uint8 grey = (new_bmp.red_color[j][i]*16 + new_bmp.green_color[j][i]*16 + new_bmp.blue_color[j][i]*16) /3;
+                                    setPixel(i,j,test,grey,grey,grey);
                                 }
                             }
                             SDL_Flip(test);
@@ -168,6 +216,7 @@ int main( int argc, char** argv )
         } // end of message processing
 
     } // end main loop
+SDL_SaveBMP(test,"new.bmp");
 
 for (int i = 0; i < new_bmp.height; i++)
 	{
