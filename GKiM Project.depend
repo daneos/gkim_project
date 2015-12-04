@@ -187,3 +187,11 @@
 	"begin_code.h"
 	"close_code.h"
 
+1449233271 source:c:\users\zielb\desktop\projekt grafika\git\main.cpp
+	<stdlib.h>
+	<cstdlib>
+	<stdlib.h>
+	<iostream>
+	<stdio.h>
+	<SDL/SDL.h>
+

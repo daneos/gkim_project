@@ -84,33 +84,39 @@ SDL_Color getPixel(int x, int y, SDL_Surface* screen) {
 
 bool LoadBMP(char* filepath, conv_bmp* new_bmp)  {
     SDL_Surface* bmp = SDL_LoadBMP(filepath);
-    memset(new_bmp,0,sizeof(conv_bmp));
-	new_bmp->height = bmp->h;
-	new_bmp->width = bmp->w;
-	new_bmp->bitsperpixel = 4;
+    if(bmp < 0) {
+        printf("SDL_LoadBMP failed: %s\n", SDL_GetError());
+        return false;
+    }
+    else {
+        memset(new_bmp,0,sizeof(conv_bmp));
+        new_bmp->height = bmp->h;
+        new_bmp->width = bmp->w;
+        new_bmp->bitsperpixel = 4;
+        new_bmp->red_color = (Uint8**)malloc(sizeof(Uint8*) * bmp->h);
+        new_bmp->green_color = (Uint8**)malloc(sizeof(Uint8*) * bmp->h);
+        new_bmp->blue_color = (Uint8**)malloc(sizeof(Uint8*) * bmp->h);
 
-	new_bmp->red_color = (Uint8**)malloc(sizeof(Uint8*) * bmp->h);
-	new_bmp->green_color = (Uint8**)malloc(sizeof(Uint8*) * bmp->h);
-	new_bmp->blue_color = (Uint8**)malloc(sizeof(Uint8*) * bmp->h);
+        for(int i=0;i<bmp->h;i++)
+        {
+            new_bmp->red_color[i] = (Uint8*)malloc(sizeof(Uint8) * bmp->w);
+            new_bmp->green_color[i] = (Uint8*)malloc(sizeof(Uint8) * bmp->w);
+            new_bmp->blue_color[i] = (Uint8*)malloc(sizeof(Uint8) * bmp->w);
 
-	for(int i=0;i<bmp->h;i++)
-	{
-		new_bmp->red_color[i] = (Uint8*)malloc(sizeof(Uint8) * bmp->w);
-		new_bmp->green_color[i] = (Uint8*)malloc(sizeof(Uint8) * bmp->w);
-		new_bmp->blue_color[i] = (Uint8*)malloc(sizeof(Uint8) * bmp->w);
-
-		for(int j=0;j<bmp->w;j++)
-		{
-			SDL_Color color = getPixel(j, i, bmp);
-			new_bmp->red_color[i][j] = (color.r/16);
-			new_bmp->green_color[i][j] = (color.g/16);
-			new_bmp->blue_color[i][j] = (color.b/16);
-			printf("Pixel Color -> R: %d,  G: %d,  B: %d, \n", new_bmp->red_color[i][j], new_bmp->green_color[i][j], new_bmp->blue_color[i][j]);
-		}
-	}
-		if(bmp) SDL_FreeSurface(bmp);
+            for(int j=0;j<bmp->w;j++)
+            {
+                SDL_Color color = getPixel(j, i, bmp);
+                new_bmp->red_color[i][j] = (color.r/16);
+                new_bmp->green_color[i][j] = (color.g/16);
+                new_bmp->blue_color[i][j] = (color.b/16);
+                printf("Pixel Color -> R: %d,  G: %d,  B: %d, \n", new_bmp->red_color[i][j], new_bmp->green_color[i][j], new_bmp->blue_color[i][j]);
+            }
+        }
+        SDL_FreeSurface(bmp);
+        return true;
+    }
 }
-
+/*
 void SaveToBinary(char* filepath, conv_bmp* new_bmp) {
     FILE* pFile;
     pFile = fopen(filepath, "wb");  //wb = write and binary
@@ -126,7 +132,36 @@ void SaveToBinary(char* filepath, conv_bmp* new_bmp) {
     }
     fclose(pFile);
 }
-
+*/
+bool SaveToBinary(char* filepath, conv_bmp* new_bmp) {
+    FILE* pFile = fopen(filepath, "wb");  //wb = write and binary
+    if(pFile == NULL) {
+        std::cout << "Cannot open binary file " << filepath << std::endl;
+        return false;
+    } else {
+        Uint8 doublecolor;
+        fwrite(&new_bmp->height,sizeof(int),1, pFile);  //write header
+        fwrite(&new_bmp->width,sizeof(int),1, pFile);
+        fwrite(&new_bmp->bitsperpixel,sizeof(Uint8),1, pFile);
+        for(int i=0;i<new_bmp->height;i++) {            //write pixel colors in order RGB
+            for(int j=0;j<new_bmp->width;j++) {
+                doublecolor = new_bmp->red_color[i][j] << 4;
+                doublecolor = doublecolor | new_bmp->green_color[i][j];
+                fwrite(&doublecolor,sizeof(Uint8),1,pFile);
+                doublecolor = new_bmp->blue_color[i][j] << (Uint8) 4;
+                doublecolor = doublecolor | new_bmp->red_color[i][j+1];
+                fwrite(&doublecolor,sizeof(Uint8),1,pFile);
+                doublecolor = new_bmp->green_color[i][j+1] << 4;
+                doublecolor = doublecolor | new_bmp->blue_color[i][j+1];
+                fwrite(&doublecolor,sizeof(Uint8),1,pFile);
+                j++;
+            }
+        }
+        return true;
+    }
+    fclose(pFile);
+}
+/*
 void LoadFromBinary(char* filepath, conv_bmp* new_bmp) {
     FILE* pFile;
     pFile = fopen(filepath, "rb");  //rb = read and binary
@@ -149,6 +184,54 @@ void LoadFromBinary(char* filepath, conv_bmp* new_bmp) {
 	}
     fclose(pFile);
 }
+*/
+bool LoadFromBinary(char* filepath, conv_bmp* new_bmp) {
+    FILE* pFile = fopen(filepath, "rb");  //rb = read and binary
+    if(pFile == NULL) {
+        std::cout << "Cannot open binary file " << filepath << std::endl;
+        return false;
+    } else {
+        Uint8 doublecolor;
+        fread(&new_bmp->height,sizeof(int),1, pFile);  //read header
+        fread(&new_bmp->width,sizeof(int),1, pFile);
+        fread(&new_bmp->bitsperpixel,sizeof(Uint8),1, pFile);
+        new_bmp->red_color = (Uint8**)malloc(sizeof(Uint8*) * new_bmp->height);  //allocate memory for colors
+        new_bmp->green_color = (Uint8**)malloc(sizeof(Uint8*) * new_bmp->height);
+        new_bmp->blue_color = (Uint8**)malloc(sizeof(Uint8*) * new_bmp->height);
+        for(int i=0;i<new_bmp->height;i++) {
+            new_bmp->red_color[i] = (Uint8*)malloc(sizeof(Uint8) * new_bmp->width);
+            new_bmp->green_color[i] = (Uint8*)malloc(sizeof(Uint8) * new_bmp->width);
+            new_bmp->blue_color[i] = (Uint8*)malloc(sizeof(Uint8) * new_bmp->width);
+            for(int j=0; j<new_bmp->width;j++) {
+                fread(&doublecolor,sizeof(Uint8),1,pFile);
+                new_bmp->red_color[i][j] = doublecolor >> 4;
+                new_bmp->green_color[i][j] = doublecolor & 15;
+                fread(&doublecolor,sizeof(Uint8),1,pFile);
+                new_bmp->blue_color[i][j] = doublecolor >> 4;
+                new_bmp->red_color[i][j+1] = doublecolor & 15;
+                fread(&doublecolor,sizeof(Uint8),1,pFile);
+                new_bmp->green_color[i][j+1] = doublecolor >> 4;
+                new_bmp->blue_color[i][j+1] = doublecolor & 15;
+                j++;
+            }
+        }
+    }
+    fclose(pFile);
+    return true;
+}
+
+void freeStruct(conv_bmp* new_bmp) {
+    for (int i = 0; i < new_bmp->height; i++)
+        {
+            free(new_bmp->red_color[i]);
+            free(new_bmp->green_color[i]);
+            free(new_bmp->blue_color[i]);
+        }
+
+        free(new_bmp->red_color);
+        free(new_bmp->green_color);
+        free(new_bmp->blue_color);
+}
 
 int main( int argc, char** argv )
 {
@@ -158,22 +241,22 @@ int main( int argc, char** argv )
     //SaveToBinary("file.binary",&new_bmp);
     LoadFromBinary("file.binary",&new_bmp);
 
-	    if ( SDL_Init( SDL_INIT_VIDEO ) < 0 )
-    {
-        printf( "Unable to init SDL: %s\n", SDL_GetError() );
-        return 1;
-    }
-	atexit(SDL_Quit);
+     if ( SDL_Init( SDL_INIT_VIDEO ) < 0 )
+        {
+            printf( "Unable to init SDL: %s\n", SDL_GetError() );
+            return 1;
+        }
+        atexit(SDL_Quit);
 
-    // create a new window
-    test = SDL_SetVideoMode(new_bmp.width, new_bmp.height, 32,
-                                           SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_ANYFORMAT);
-    if ( !test )
-    {
-        printf("Unable to set video: %s\n", SDL_GetError());
-        return 1;
-    }
-    bool done = false;
+        // create a new window
+        test = SDL_SetVideoMode(new_bmp.width, new_bmp.height, 32,
+                   SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_ANYFORMAT);
+        if ( !test )
+        {
+            printf("Unable to set video: %s\n", SDL_GetError());
+            return 1;
+        }
+        bool done = false;
     while (!done)
     {
         // message processing loop
@@ -194,41 +277,40 @@ int main( int argc, char** argv )
                     // exit if ESCAPE is pressed
                     if (event.key.keysym.sym == SDLK_ESCAPE)
                         done = true;
-                    if (event.key.keysym.sym == SDLK_1) {    //4 biotwy obraz
-                            for(int i=0;i<new_bmp.width;i++) {
-                                for(int j=0;j<new_bmp.height;j++) {
-                                    setPixel(i,j,test,new_bmp.red_color[j][i]*16,new_bmp.green_color[j][i]*16,new_bmp.blue_color[j][i]*16);
-                                }
+                    if (event.key.keysym.sym == SDLK_c) {    //4 biotwy obraz
+                        for(int i=0;i<new_bmp.height;i++) {
+                            for(int j=0;j<new_bmp.width;j++) {
+                                setPixel(j,i,test,new_bmp.red_color[i][j]*16,new_bmp.green_color[i][j]*16,new_bmp.blue_color[i][j]*16);
                             }
-                            SDL_Flip(test);
+                        }
+                        SDL_Flip(test);
                      }
-                     if (event.key.keysym.sym == SDLK_2) {   //4 bitowa skala szarosci
-                            for(int i=0;i<new_bmp.width;i++) {
-                                for(int j=0;j<new_bmp.height;j++) {
-                                    Uint8 grey = (new_bmp.red_color[j][i]*16 + new_bmp.green_color[j][i]*16 + new_bmp.blue_color[j][i]*16) /3;
-                                    setPixel(i,j,test,grey,grey,grey);
-                                }
+                     if (event.key.keysym.sym == SDLK_g) {   //4 bitowa skala szarosci
+                        for(int i=0;i<new_bmp.height;i++) {
+                            for(int j=0;j<new_bmp.width;j++) {
+                                Uint8 grey = (new_bmp.red_color[i][j]*16 + new_bmp.green_color[i][j]*16 + new_bmp.blue_color[i][j]*16) /3;
+                                setPixel(j,i,test,grey,grey,grey);
                             }
-                            SDL_Flip(test);
+                        }
+                        SDL_Flip(test);
+                     }
+                    if (event.key.keysym.sym == SDLK_1) {   //4 bitowa skala szarosci
+                        LoadBMP("images.bmp",&new_bmp);
+                        SaveToBinary("file.binary",&new_bmp);
+                     }
+                    if (event.key.keysym.sym == SDLK_2) {   //4 bitowa skala szarosci
+                        LoadFromBinary("file.binary",&new_bmp);
+                        SDL_SaveBMP(test,"new.bmp");
                      }
                 }
             } // end switch
         } // end of message processing
 
     } // end main loop
-SDL_SaveBMP(test,"new.bmp");
+freeStruct(&new_bmp);
 
-for (int i = 0; i < new_bmp.height; i++)
-	{
-		free(new_bmp.red_color[i]);
-		free(new_bmp.green_color[i]);
-		free(new_bmp.blue_color[i]);
-	}
-
-	free(new_bmp.red_color);
-	free(new_bmp.green_color);
-	free(new_bmp.blue_color);
 	if(test) SDL_FreeSurface(test);
 	printf("Exited cleanly\n");
 	return 0;
 }
+
