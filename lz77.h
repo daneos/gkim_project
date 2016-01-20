@@ -1,3 +1,14 @@
+/**
+ * @package LZ77 encoder/decoder
+ * @file Declaration file
+ * Projekt GKIM
+ * Grzegorz Kowalski
+ * Bartosz Zielnik
+ * Piotr Mańkowski
+ * Dariusz Szyszlak
+ * version 1 | 01.2016
+ */
+
 #if !defined(__LZ77_H__)
 #	define __LZ77_H___
 
@@ -18,6 +29,6 @@ typedef struct _symbol {
 } symbol;
 
 int lz77_compress(uint8_t *in, uint8_t *out, int size, int k, int n);
-int lz77_decompress(uint8_t *in, uint8_t *out, int size, int k, int n);
+void lz77_decompress(uint8_t *in, uint8_t *out, int csize, int size, int k);
 
 #endif /* __LZ77_H___ */

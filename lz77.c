@@ -1,3 +1,14 @@
+/**
+ * @package LZ77 encoder/decoder
+ * @file Implementation file
+ * Projekt GKIM
+ * Grzegorz Kowalski
+ * Bartosz Zielnik
+ * Piotr Mańkowski
+ * Dariusz Szyszlak
+ * version 1 | 01.2016
+ */
+
 #include "lz77.h"
 
 /**
@@ -53,20 +64,20 @@ symbol search(uint8_t *buf, int i, int k, int n)
 }
 
 /**
- * Prepare input buffer (extend to match parameters)
- * @param in input array
- * @param size amount of input data
+ * Prepare buffer (extend to match parameters)
+ * @param buf buffer to extend
+ * @param size amount of data
  * @param k dictionary size
  * @param n lookahead buffer size
- * @return extended input array
+ * @return extended array
  */
-uint8_t *prepare(uint8_t *in, int size, int k, int n)
+uint8_t *prepare(uint8_t *buf, int size, int k, int n)
 {
-	uint8_t *buf = malloc((size+k+n)*sizeof(uint8_t));
-	memset(buf, in[0], k);			// copy first symbol through entire dictionary
-	memcpy(buf+k, in, size);		// copy input after dict
-	memset(buf+k+size, 0, n);		// fill additional space with 0s
-	return buf;
+	uint8_t *ebuf = malloc((size+k+n)*sizeof(uint8_t));
+	memset(ebuf, buf[0], k);			// copy first symbol through entire dictionary
+	memcpy(ebuf+k, buf, size);		// copy input after dict
+	memset(ebuf+k+size, 0, n);		// fill additional space with 0s
+	return ebuf;
 }
 
 /**
@@ -132,12 +143,36 @@ int lz77_compress(uint8_t *in, uint8_t *out, int size, int k, int n)
  * LZ77 Decompressor function
  * @param in input array
  * @param out output array
- * @param size amount of input data
+ * @param csize amount of compressed data
+ * @param size amount of uncompressed data
  * @param k dictionary size
- * @param n lookahead buffer size
- * @return length of decompressed data
  */
-int lz77_decompress(uint8_t *in, uint8_t *out, int size, int k, int n)
+void lz77_decompress(uint8_t *in, uint8_t *out, int csize, int size, int k)
 {
-	return -1;
+	out[0] = in[0];						// output first symbol
+	uint8_t *dict = prepare(out, size, k, 0);	// prepare working window
+	int iindex = 1;						// initialize indexes
+	int oindex = 1;
+
+	while(iindex < csize)
+	{
+		symbol s = { in[iindex], in[iindex+1], in[iindex+2] };		// get symbol
+
+		if(LZ77_DEBUG_MODE)
+		{
+			// print debug information in format
+			// [ dictionary ] | [ symbol ]
+			printpart(dict, oindex, oindex+k);
+			printf(" | P=%3d  C=%3d  S=%3d\n", s.P, s.C, s.S);
+		}
+
+		for(int i=0; i < s.C; i++, oindex++)		// copy data from dictionary
+			dict[k+oindex] = dict[s.P+oindex];
+
+		dict[k+oindex] = s.S;		// append next symbol
+		oindex++;					// move indexes
+		iindex += 3;
+	}
+
+	memcpy(out, dict+k, size);		// copy data from dict to output
 }
