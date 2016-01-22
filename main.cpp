@@ -1,13 +1,8 @@
 // ConsoleApplication1.cpp : Defines the entry point for the console application.
 //
 #include <stdlib.h>
-
-#ifdef __cplusplus
-    #include <cstdlib>
-#else
-    #include <stdlib.h>
-#endif
-#include<iostream>
+#include <cstdlib>
+#include <iostream>
 #include <stdio.h>
 
 #include <SDL/SDL.h>
@@ -21,20 +16,23 @@ struct conv_bmp {
 	Uint8 **blue_color;
 };
 
+/**
+ * Set pixel color in SDL_Surface
+ * @param x x axis position
+ * @param y y axis position
+ * @param screen SDL_Surface
+ * @param R amount of red color
+ * @param G amount of green color
+ * @param B amount of blue color
+ */
+
 void setPixel(int x, int y,SDL_Surface* screen, Uint8 R, Uint8 G, Uint8 B)
 {
   if ((screen!=NULL) && (x>=0) && (x<screen->w) && (y>=0) && (y<screen->h))
   {
-    /* Zamieniamy poszczególne sk³adowe koloru na format koloru pixela */
     Uint32 pixel = SDL_MapRGB(screen->format, R, G, B);
-
-    /* Pobieramy informacji ile bajtów zajmuje jeden pixel */
     int bpp = screen->format->BytesPerPixel;
-
-    /* Obliczamy adres pixela */
     Uint8 *p = (Uint8 *)screen->pixels + y * screen->pitch + x * bpp;
-
-    /* Ustawiamy wartoœæ pixela, w zale¿noœci od formatu powierzchni*/
     switch(bpp)
     {
         case 1: //8-bit
@@ -62,10 +60,16 @@ void setPixel(int x, int y,SDL_Surface* screen, Uint8 R, Uint8 G, Uint8 B)
             break;
 
     }
-         /* update the screen (aka double buffering) */
   }
 }
 
+/**
+ * Get pixel color from SDL_Surface
+ * @param x x axis position
+ * @param y y axis position
+ * @param screen SDL_Surface
+ * @return pixel color
+ */
 SDL_Color getPixel(int x, int y, SDL_Surface* screen) {
 	SDL_Color color;
 	Uint32 col = 0;
@@ -82,6 +86,12 @@ SDL_Color getPixel(int x, int y, SDL_Surface* screen) {
 	return (color);
 }
 
+/**
+ * Load BMP file to conv_bmp structure
+ * @param filepath BMP file path
+ * @param new_bmp structure which holds BMP essentials
+ * @return true if all done correctly
+ */
 bool LoadBMP(char* filepath, conv_bmp* new_bmp)  {
     SDL_Surface* bmp = SDL_LoadBMP(filepath);
     if(bmp < 0) {
@@ -116,23 +126,13 @@ bool LoadBMP(char* filepath, conv_bmp* new_bmp)  {
         return true;
     }
 }
-/*
-void SaveToBinary(char* filepath, conv_bmp* new_bmp) {
-    FILE* pFile;
-    pFile = fopen(filepath, "wb");  //wb = write and binary
-    fwrite(&new_bmp->height,sizeof(int),1, pFile);  //write header
-    fwrite(&new_bmp->width,sizeof(int),1, pFile);
-    fwrite(&new_bmp->bitsperpixel,sizeof(Uint8),1, pFile);
-    for(int i=0;i<new_bmp->height;i++) {            //write pixel colors in order RGB
-        for(int j=0;j<new_bmp->width;j++) {
-                fwrite(&new_bmp->red_color[i][j],sizeof(Uint8),1,pFile);
-                fwrite(&new_bmp->green_color[i][j],sizeof(Uint8),1,pFile);
-                fwrite(&new_bmp->blue_color[i][j],sizeof(Uint8),1,pFile);
-        }
-    }
-    fclose(pFile);
-}
-*/
+
+/**
+ * Save conv_bmp structure into binary file
+ * @param filepath path for binary file
+ * @param new_bmp structure which holds BMP essentials
+ * @return true if all done correctly
+ */
 bool SaveToBinary(char* filepath, conv_bmp* new_bmp) {
     FILE* pFile = fopen(filepath, "wb");  //wb = write and binary
     if(pFile == NULL) {
@@ -161,30 +161,14 @@ bool SaveToBinary(char* filepath, conv_bmp* new_bmp) {
     }
     fclose(pFile);
 }
-/*
-void LoadFromBinary(char* filepath, conv_bmp* new_bmp) {
-    FILE* pFile;
-    pFile = fopen(filepath, "rb");  //rb = read and binary
-    fread(&new_bmp->height,sizeof(int),1, pFile);  //read header
-    fread(&new_bmp->width,sizeof(int),1, pFile);
-    fread(&new_bmp->bitsperpixel,sizeof(Uint8),1, pFile);
-    new_bmp->red_color = (Uint8**)malloc(sizeof(Uint8*) * new_bmp->height);  //allocate memory for colors
-	new_bmp->green_color = (Uint8**)malloc(sizeof(Uint8*) * new_bmp->height);
-	new_bmp->blue_color = (Uint8**)malloc(sizeof(Uint8*) * new_bmp->height);
-	for(int i=0;i<new_bmp->height;i++)
-	{
-		new_bmp->red_color[i] = (Uint8*)malloc(sizeof(Uint8) * new_bmp->width);
-		new_bmp->green_color[i] = (Uint8*)malloc(sizeof(Uint8) * new_bmp->width);
-		new_bmp->blue_color[i] = (Uint8*)malloc(sizeof(Uint8) * new_bmp->width);
-        for(int j=0; j<new_bmp->width;j++) {
-	        fread(&new_bmp->red_color[i][j],sizeof(Uint8),1,pFile);   //read colors
-            fread(&new_bmp->green_color[i][j],sizeof(Uint8),1,pFile);
-            fread(&new_bmp->blue_color[i][j],sizeof(Uint8),1,pFile);
-        }
-	}
-    fclose(pFile);
-}
-*/
+
+/**
+ * Load binary file to conv_bmp structure
+ * @param filepath path for binary file
+ * @param new_bmp structure which holds BMP essentials
+ * @return true if all done correctly
+ */
+
 bool LoadFromBinary(char* filepath, conv_bmp* new_bmp) {
     FILE* pFile = fopen(filepath, "rb");  //rb = read and binary
     if(pFile == NULL) {
@@ -220,6 +204,10 @@ bool LoadFromBinary(char* filepath, conv_bmp* new_bmp) {
     return true;
 }
 
+/**
+ * Free memory used by conv_bmp structure
+ * @param new_bmp structure which holds BMP essentials
+ */
 void freeStruct(conv_bmp* new_bmp) {
     for (int i = 0; i < new_bmp->height; i++)
         {
