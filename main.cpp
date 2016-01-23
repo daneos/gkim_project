@@ -4,17 +4,12 @@
 #include <cstdlib>
 #include <iostream>
 #include <stdio.h>
+//#include<cstdint>
+#include "huffman.h"
+#include"bmptool.h"
 
 #include <SDL/SDL.h>
 
-struct conv_bmp {
-	int height;
-	int width;
-	Uint8 bitsperpixel;
-	Uint8 **red_color;
-	Uint8 **green_color;
-	Uint8 **blue_color;
-};
 
 /**
  * Set pixel color in SDL_Surface
@@ -25,7 +20,7 @@ struct conv_bmp {
  * @param G amount of green color
  * @param B amount of blue color
  */
-
+//extern huffman_decoding(conv_bmp* new_bmp);
 void setPixel(int x, int y,SDL_Surface* screen, Uint8 R, Uint8 G, Uint8 B)
 {
   if ((screen!=NULL) && (x>=0) && (x<screen->w) && (y>=0) && (y<screen->h))
@@ -119,7 +114,7 @@ bool LoadBMP(char* filepath, conv_bmp* new_bmp)  {
                 new_bmp->red_color[i][j] = (color.r/16);
                 new_bmp->green_color[i][j] = (color.g/16);
                 new_bmp->blue_color[i][j] = (color.b/16);
-                printf("Pixel Color -> R: %d,  G: %d,  B: %d, \n", new_bmp->red_color[i][j], new_bmp->green_color[i][j], new_bmp->blue_color[i][j]);
+               //printf("Pixel Color -> R: %d,  G: %d,  B: %d, \n", new_bmp->red_color[i][j], new_bmp->green_color[i][j], new_bmp->blue_color[i][j]);
             }
         }
         SDL_FreeSurface(bmp);
@@ -223,11 +218,17 @@ void freeStruct(conv_bmp* new_bmp) {
 
 int main( int argc, char** argv )
 {
+    freopen( "CON", "wt", stdout );
+    freopen( "CON", "wt", stderr );
     SDL_Surface* test = NULL;
+
     conv_bmp new_bmp;
-    //LoadBMP("images.bmp",&new_bmp);
-    //SaveToBinary("file.binary",&new_bmp);
-    LoadFromBinary("file.binary",&new_bmp);
+
+    LoadBMP("images.bmp",&new_bmp);
+   // SaveToBinary("file.binary",&new_bmp);
+   // LoadFromBinary("file.binary",&new_bmp);
+   // huffman_encoding(&new_bmp);
+   // huffman_decoding(&new_bmp);
 
      if ( SDL_Init( SDL_INIT_VIDEO ) < 0 )
         {
@@ -289,6 +290,13 @@ int main( int argc, char** argv )
                     if (event.key.keysym.sym == SDLK_2) {   //4 bitowa skala szarosci
                         LoadFromBinary("file.binary",&new_bmp);
                         SDL_SaveBMP(test,"new.bmp");
+                     }
+                    if (event.key.keysym.sym == SDLK_h) {   //kodowanie Huffmana
+                        huffman_encoding(&new_bmp);
+                     }
+                    if (event.key.keysym.sym == SDLK_j) {   //dekodowanie  Huffmana
+                        huffman_decoding(&new_bmp);
+                        SDL_SaveBMP(c,"new_huff.bmp");
                      }
                 }
             } // end switch
