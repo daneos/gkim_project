@@ -102,6 +102,16 @@ void printpart(uint8_t *buf, int start, int end)
 }
 
 /**
+ * Convert conv_bmp structure to uint8_t array expected by lz77 compressor
+ * @param bmp conv_bmp structure
+ * @return input array for lz77
+ */
+uint8_t *bmp_to_lz77(conv_bmp *bmp)
+{
+	return NULL;
+}
+
+/**
  * LZ77 Compressor function
  * @param in input array
  * @param out output array
@@ -112,7 +122,7 @@ void printpart(uint8_t *buf, int start, int end)
  */
 int lz77_compress(uint8_t *in, uint8_t *out, int size, int k, int n)
 {
-	in = prepare(in, size, k, n);		// adjust buffers
+	//in = prepare(in, size, k, n);		// adjust buffers
 	int iindex = 1;						// initialize indexes
 	int oindex = 1;
 	out[0] = in[0];						// output first symbol

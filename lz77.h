@@ -17,7 +17,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define LZ77_DEBUG_MODE		1
+#include "bmptool.h"
+
+#define LZ77_DEBUG_MODE		0
 
 /**
  * @struct Symbol used in encoding
@@ -28,6 +30,9 @@ typedef struct _symbol {
 	uint8_t S;		//!< Next symbol
 } symbol;
 
+uint8_t *bmp_for_lz(conv_bmp *bmp);
+
+uint8_t *prepare(uint8_t *buf, int size, int k, int n);
 int lz77_compress(uint8_t *in, uint8_t *out, int size, int k, int n);
 void lz77_decompress(uint8_t *in, uint8_t *out, int csize, int size, int k);
 

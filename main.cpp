@@ -1,200 +1,137 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <inttypes.h>
 
 #include "bmptool.h"
 #include "guitool.h"
+#include "packer.h"
 #include "lz77.h"
 #include "huffman.h"
 
 #include <SDL/SDL.h>
 
-/**
- * Save conv_bmp structure into binary file
- * @param filepath path for binary file
- * @param new_bmp structure which holds BMP essentials
- * @return true if all done correctly
- */
-bool SaveToBinary(char* filepath, conv_bmp* new_bmp)
+#define ENC_NONE		0
+#define ENC_HUFFMAN		1
+#define ENC_LZ77		2
+
+
+void help(char * pname)
 {
-	FILE* pFile = fopen(filepath, "wb");  //wb = write and binary
-	if(pFile == NULL)
+	printf("hciconv - Hopefully Compressed Image converter\n");
+	printf("(C) 2015-2016 Grzegorz Kowalski, Bartosz Zielnik, Piotr Mańkowski, Dariusz Szyszlak\n\n");
+	printf("USAGE:\n");
+	printf("\t%s [options] [input file] [output file]\n", pname);
+	printf("\tIf input file is .hci, then there are no options available,\n");
+	printf("\tand the action is decoding.\n");
+	printf("\tIf input file is .bmp, then following options are available,\n");
+	printf("\tand the action is encoding:\n");
+	printf("\t\t h\tHuffman compression\n");
+	printf("\t\t l\tLZ77 compression\n");
+	printf("\tProgram always cuts images to be 4-bit per channel.\n\n");
+}
+
+int main(int argc, char** argv)
+{
+
+	if(argc < 3)
 	{
-		printf("Cannot open binary file %s\n", filepath);
-		return false;
+		help(argv[0]);
+		return 0;
+	}
+	if(argc < 4)
+	{
+		// decoding
 	}
 	else
 	{
-		Uint8 doublecolor;
-		fwrite(&new_bmp->height,sizeof(int),1, pFile);  //write header
-		fwrite(&new_bmp->width,sizeof(int),1, pFile);
-		fwrite(&new_bmp->bitsperpixel,sizeof(Uint8),1, pFile);
-		for(int i=0;i<new_bmp->height;i++)
-		{            //write pixel colors in order RGB
-			for(int j=0;j<new_bmp->width;j++)
+		// coding
+		conv_bmp bmp;
+		LoadBMP(argv[2], &bmp);
+		uint32_t height = bmp.height;
+		uint32_t width = bmp.width;
+		uint8_t id[3] = { 'H', 'C', 'I' };
+		uint8_t encoding = ENC_NONE;
+
+		uint8_t *out;	// ouput data
+		int csize;		// size of compressed data
+
+		// tutaj wrzuccie zmienne potrzebne do zapisu
+		uint8_t lz_dict_size;	//	dictionary size
+		uint32_t lz_size;		// uncompressed data size
+
+		switch(argv[1][0])
+		{
+			case 'h':
+			case 'H':
 			{
-				doublecolor = new_bmp->red_color[i][j] << 4;
-				doublecolor = doublecolor | new_bmp->green_color[i][j];
-				fwrite(&doublecolor,sizeof(Uint8),1,pFile);
-				doublecolor = new_bmp->blue_color[i][j] << (Uint8) 4;
-				doublecolor = doublecolor | new_bmp->red_color[i][j+1];
-				fwrite(&doublecolor,sizeof(Uint8),1,pFile);
-				doublecolor = new_bmp->green_color[i][j+1] << 4;
-				doublecolor = doublecolor | new_bmp->blue_color[i][j+1];
-				fwrite(&doublecolor,sizeof(Uint8),1,pFile);
-				j++;
+				// huffman
+				encoding = ENC_HUFFMAN;
+				break;
+			}
+		
+			case 'l':
+			case 'L':
+			{
+				// lz77
+				encoding = ENC_LZ77;
+				lz_dict_size = 255;
+				int lookahead_size = 8;
+				printf("=== LZ77 started. ===\n");
+
+				uint8_t *packed = pack(&bmp, (int*)&lz_size);
+				freeStruct(&bmp);
+				printf("Packed succesfully. %d bytes.\n", lz_size);
+
+				uint8_t *prepared = prepare(packed, lz_size, lz_dict_size, lookahead_size);
+				free(packed);
+				out = (uint8_t*)malloc(lz_size*sizeof(uint8_t)*2);	// lz77 compressed data can be slightly bigger than uncompressed
+				printf("Buffers allocated.\n");
+
+				csize = lz77_compress(prepared, out, lz_size, lz_dict_size, lookahead_size);
+				//free(prepared);
+				printf("Compression done. %d bytes.\n=== DONE ===\n", csize);
+
+				break;
+			}
+		
+			default:
+			{
+				printf("Unrecognized option: %s\n\n", argv[1]);
+				help(argv[0]);
+				return -1;
 			}
 		}
-		return true;
-	}
-	fclose(pFile);
-}
 
-/**
- * Load binary file to conv_bmp structure
- * @param filepath path for binary file
- * @param new_bmp structure which holds BMP essentials
- * @return true if all done correctly
- */
-
-bool LoadFromBinary(char* filepath, conv_bmp* new_bmp)
-{
-	FILE* pFile = fopen(filepath, "rb");  //rb = read and binary
-	if(pFile == NULL)
-	{
-		printf("Cannot open binary file %s\n", filepath);
-		return false;
-	}
-	else
-	{
-		Uint8 doublecolor;
-		fread(&new_bmp->height,sizeof(int),1, pFile);  //read header
-		fread(&new_bmp->width,sizeof(int),1, pFile);
-		fread(&new_bmp->bitsperpixel,sizeof(Uint8),1, pFile);
-		new_bmp->red_color = (Uint8**)malloc(sizeof(Uint8*) * new_bmp->height);  //allocate memory for colors
-		new_bmp->green_color = (Uint8**)malloc(sizeof(Uint8*) * new_bmp->height);
-		new_bmp->blue_color = (Uint8**)malloc(sizeof(Uint8*) * new_bmp->height);
-		for(int i=0;i<new_bmp->height;i++)
+		FILE *fout = fopen(argv[3], "wb");
+		if(fout)
 		{
-			new_bmp->red_color[i] = (Uint8*)malloc(sizeof(Uint8) * new_bmp->width);
-			new_bmp->green_color[i] = (Uint8*)malloc(sizeof(Uint8) * new_bmp->width);
-			new_bmp->blue_color[i] = (Uint8*)malloc(sizeof(Uint8) * new_bmp->width);
-			for(int j=0; j<new_bmp->width;j++)
+			// write header
+			fwrite(id, sizeof(uint8_t), 3, fout);		// file id
+			fwrite(&width, sizeof(uint32_t), 1, fout);	// width
+			fwrite(&height, sizeof(uint32_t), 1, fout);	// height
+			fwrite(&encoding, sizeof(uint8_t), 1, fout);// encoding type
+			// write header for compression algorithm
+			if(encoding == ENC_HUFFMAN)
 			{
-				fread(&doublecolor,sizeof(Uint8),1,pFile);
-				new_bmp->red_color[i][j] = doublecolor >> 4;
-				new_bmp->green_color[i][j] = doublecolor & 15;
-				fread(&doublecolor,sizeof(Uint8),1,pFile);
-				new_bmp->blue_color[i][j] = doublecolor >> 4;
-				new_bmp->red_color[i][j+1] = doublecolor & 15;
-				fread(&doublecolor,sizeof(Uint8),1,pFile);
-				new_bmp->green_color[i][j+1] = doublecolor >> 4;
-				new_bmp->blue_color[i][j+1] = doublecolor & 15;
-				j++;
+				// tutaj zapis naglowka dla huffmana
 			}
+			else if(encoding == ENC_LZ77)
+			{
+				fwrite(&lz_dict_size, sizeof(uint8_t), 1, fout);	// lz dictionary size
+				fwrite(&lz_size, sizeof(uint32_t), 1, fout);		// lz uncompressed size
+			}
+			// write compressed data
+			fwrite(out, sizeof(uint8_t), csize, fout);
+			free(out);
+			fclose(fout);
+		}
+		else
+		{
+			printf("Error opening file %s!\n", argv[3]);
+			return -1;
 		}
 	}
-	fclose(pFile);
-	return true;
-}
 
-
-
-int main( int argc, char** argv )
-{
-	freopen("CON", "wt", stdout);
-	freopen("CON", "wt", stderr);
-	SDL_Surface* test = NULL;
-
-	conv_bmp new_bmp;
-
-	LoadBMP("images.bmp",&new_bmp);
-   // SaveToBinary("file.binary",&new_bmp);
-   // LoadFromBinary("file.binary",&new_bmp);
-   // huffman_encoding(&new_bmp);
-   // huffman_decoding(&new_bmp);
-
-	if(SDL_Init(SDL_INIT_VIDEO) < 0)
-	{
-		printf( "Unable to init SDL: %s\n", SDL_GetError() );
-		return 1;
-	}
-	atexit(SDL_Quit);
-
-		// create a new window
-	test = SDL_SetVideoMode(new_bmp.width, new_bmp.height, 32, SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_ANYFORMAT);
-	if(!test)
-	{
-		printf("Unable to set video: %s\n", SDL_GetError());
-		return 1;
-	}
-	bool done = false;
-	while(!done)
-	{
-		// message processing loop
-		SDL_Event event;
-		while (SDL_PollEvent(&event))
-		{
-			// check for messages
-			switch(event.type)
-			{
-				// exit if the window is closed
-				case SDL_QUIT:
-					done = true;
-					break;
-
-				// check for keypresses
-				case SDL_KEYDOWN:
-				{
-					// exit if ESCAPE is pressed
-					if(event.key.keysym.sym == SDLK_ESCAPE)
-						done = true;
-					if(event.key.keysym.sym == SDLK_c)
-					{    //4 biotwy obraz
-						for(int i=0;i<new_bmp.height;i++)
-							for(int j=0;j<new_bmp.width;j++)
-								setPixel(j,i,test,new_bmp.red_color[i][j]*16,new_bmp.green_color[i][j]*16,new_bmp.blue_color[i][j]*16);
-						SDL_Flip(test);
-					}
-					if(event.key.keysym.sym == SDLK_g)
-					{   //4 bitowa skala szarosci
-						for(int i=0;i<new_bmp.height;i++)
-						{
-							for(int j=0;j<new_bmp.width;j++)
-							{
-								Uint8 grey = (new_bmp.red_color[i][j]*16 + new_bmp.green_color[i][j]*16 + new_bmp.blue_color[i][j]*16) /3;
-								setPixel(j,i,test,grey,grey,grey);
-							}
-						}
-						SDL_Flip(test);
-					}
-					if(event.key.keysym.sym == SDLK_1)
-					{   //4 bitowa skala szarosci
-						LoadBMP("images.bmp",&new_bmp);
-						SaveToBinary("file.binary",&new_bmp);
-					}
-					if(event.key.keysym.sym == SDLK_2)
-					{   //4 bitowa skala szarosci
-						LoadFromBinary("file.binary",&new_bmp);
-						SDL_SaveBMP(test,"new.bmp");
-					}
-					if(event.key.keysym.sym == SDLK_h)
-					{   //kodowanie Huffmana
-						huffman_encoding(&new_bmp);
-					}
-					if(event.key.keysym.sym == SDLK_j)
-					{   //dekodowanie  Huffmana
-						huffman_decoding(&new_bmp);
-						SDL_SaveBMP(test,"new_huff.bmp");
-					}
-				}
-			} // end switch
-		} // end of message processing
-
-	} // end main loop
-	freeStruct(&new_bmp);
-
-	if(test) SDL_FreeSurface(test);
-	printf("Exited cleanly\n");
 	return 0;
 }
 
