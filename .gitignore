@@ -33,3 +33,6 @@
 
 # Sublime Text project
 sublime-project/*
+
+# Output file
+hciconv

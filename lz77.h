@@ -31,4 +31,7 @@ typedef struct _symbol {
 int lz77_compress(uint8_t *in, uint8_t *out, int size, int k, int n);
 void lz77_decompress(uint8_t *in, uint8_t *out, int csize, int size, int k);
 
+int lzpack(uint8_t *in, uint8_t *out, int size, int k, int n);
+void lzunpack(uint8_t *in, uint8_t *out, int csize, int size, int k, int n);
+
 #endif /* __LZ77_H___ */

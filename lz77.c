@@ -73,8 +73,8 @@ symbol search(uint8_t *buf, int i, int k, int n)
  */
 uint8_t *prepare(uint8_t *buf, int size, int k, int n)
 {
-	uint8_t *ebuf = malloc((size+k+n)*sizeof(uint8_t));
-	memset(ebuf, buf[0], k);			// copy first symbol through entire dictionary
+	uint8_t *ebuf = (uint8_t*)malloc((size+k+n)*sizeof(uint8_t));
+	memset(ebuf, buf[0], k);		// copy first symbol through entire dictionary
 	memcpy(ebuf+k, buf, size);		// copy input after dict
 	memset(ebuf+k+size, 0, n);		// fill additional space with 0s
 	return ebuf;
@@ -175,4 +175,44 @@ void lz77_decompress(uint8_t *in, uint8_t *out, int csize, int size, int k)
 	}
 
 	memcpy(out, dict+k, size);		// copy data from dict to output
+	clean(dict);					// free dict memory
+}
+
+/**
+ * Computes bit layout of position/length pair
+ * @param k dictionary size
+ * @param n lookahead size
+ * @return mask, where 0s are position and 1s are length
+ */
+uint8_t compute_packer_params(int k, int n)
+{
+	return 3;
+}
+
+/**
+ * LZ77 Packer function
+ * @param in input array
+ * @param out output array
+ * @param size amount of input data
+ * @param k dictionary size
+ * @param n lookahead size
+ * @return size of packed data
+ */
+int lzpack(uint8_t *in, uint8_t *out, int size, int k, int n)
+{
+	return -1;
+}
+
+/**
+ * LZ77 Unpacker function
+ * @param in input array
+ * @param out output array
+ * @param csize amount of compressed data
+ * @param size amount of uncompressed data
+ * @param k dictionary size
+ * @param n lookahead size
+ */
+void lzunpack(uint8_t *in, uint8_t *out, int csize, int size, int k, int n)
+{
+	return;
 }
