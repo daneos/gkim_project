@@ -296,7 +296,7 @@ int main( int argc, char** argv )
                      }
                     if (event.key.keysym.sym == SDLK_j) {   //dekodowanie  Huffmana
                         huffman_decoding(&new_bmp);
-                        SDL_SaveBMP(c,"new_huff.bmp");
+                        SDL_SaveBMP(test,"new_huff.bmp");
                      }
                 }
             } // end switch

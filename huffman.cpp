@@ -9,7 +9,7 @@ using namespace std;
  * @param  new_bmp structure which holds BMP essentials
  * @return true if all done correctly
  */
-bool huffman_encoding(conv_bmp* new_bmp)
+bool huffman_encoding(const conv_bmp* new_bmp)
 {
     int counter=-1;                   //counter for the number of colors
     int colors_frequency[4096]={0};     //frequency of particular colors
@@ -71,8 +71,6 @@ for(int i=0; i<=counter; i++)
     Node * temp_node1;
     Node * temp_node2;
     Node * new_root;
-    int temp_frequency1=0;
-    int temp_frequency2=0;
     dictionary* elements_of_dictionary=new dictionary[counter+1];
 
     while(!Queue.empty())
@@ -91,7 +89,7 @@ for(int i=0; i<=counter; i++)
     }
 
     inorder(new_root,c,0,elements_of_dictionary);
-
+    postorder_node_delete(new_root);
     for(int i=0; i<=counter; i++)
     {
         elements_of_dictionary[i].colors.r=temporary_array[i].r;
@@ -147,7 +145,7 @@ for(int i=0; i<=counter; i++)
         length=0;
        for(int j=0; j<elements_of_dictionary[i].code_length; j++)
         {
-            huffman_code<<1;
+           // huffman_code<<1;
             huffman_code=huffman_code|elements_of_dictionary[i].huffmancode[j];
             file.write((const char *)&huffman_code,sizeof(huffman_code));
             huffman_code=0;
@@ -189,6 +187,7 @@ for(int i=0; i<=counter; i++)
            }
         }
         }
+        delete[] elements_of_dictionary;
         file.close();
 }
 
@@ -260,7 +259,7 @@ bool huffman_decoding(conv_bmp* new_bmp)
 
 
     while(!file.eof())
-        {
+    {
 
        file.read((char *) & code_huff,sizeof(Uint8));
 
@@ -301,8 +300,11 @@ bool huffman_decoding(conv_bmp* new_bmp)
             code_length_search++;
             }
        }
-        }
+    }
+        delete[] search_array;
+        delete[] elements_of_dictionary;
         file.close();
+
 }
 /**
  * Build huffman code for particular element of dictionary
@@ -338,7 +340,7 @@ bool huffman_decoding(conv_bmp* new_bmp)
  * @param  dictionary size
  * @return index element of dictionary of particular pixel
  */
-int search_dictionary(Uint8 *search_code, dictionary *elements_dictionary, int code_length, int dictionary_size)
+int search_dictionary(const Uint8 *search_code,const  dictionary *elements_dictionary, int code_length, int dictionary_size)
 {
     bool flag=true;
     int dictionary_index=-1;
@@ -353,15 +355,26 @@ int search_dictionary(Uint8 *search_code, dictionary *elements_dictionary, int c
                 {
                     flag=false;
                 }
-
             }
             if(flag)
             {
                 dictionary_index=i;
                 break;
-
             }
        }
     }
      return dictionary_index;
+}
+/**
+ * Delete dynamic allocated memory of huffman tree
+ * @param Root node of huffman tree
+ */
+void postorder_node_delete(Node* n)
+{
+    if(n)
+    {
+        postorder_node_delete(n->left);
+        postorder_node_delete(n->right);
+        delete n;
+    }
 }

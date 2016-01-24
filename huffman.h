@@ -37,7 +37,7 @@ struct dictionary{
  * @param  new_bmp structure which holds BMP essentials
  * @return true if all done correctly
  */
-bool huffman_encoding(conv_bmp* new_bmp);
+bool huffman_encoding(const conv_bmp* new_bmp);
 /**
  * Deompress huff file to bmp
  * @param  new_bmp structure for BMP essentials from huff file
@@ -61,6 +61,10 @@ void inorder(Node * n,Uint8 *c, int lenght, dictionary *tab);
  * @param  dictionary size
  * @return index element of dictionary of particular pixel
  */
-int search_dictionary(Uint8 *search_code, dictionary *elements_dictionary, int code_length, int dictionary_size);
-
+int search_dictionary(const Uint8 *search_code,const dictionary *elements_dictionary, int code_length, int dictionary_size);
+/**
+ * Delete dynamic allocated memory of huffman tree
+ * @param Root node of huffman tree
+ */
+void postorder_node_delete(Node* n);
 #endif  //HUFFMAN_H_INCLUDED
