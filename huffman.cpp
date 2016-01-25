@@ -9,7 +9,7 @@ using namespace std;
  * @param  new_bmp structure which holds BMP essentials
  * @return true if all done correctly
  */
-bool huffman_encoding(const conv_bmp* new_bmp)
+int huffman_encoding(const conv_bmp* new_bmp,Uint8* out,Uint16 &dictionary_size,Uint16 &longest_code,dictionary * elements_of_dictionary)
 {
     int counter=-1;                   //counter for the number of colors
     int colors_frequency[4096]={0};     //frequency of particular colors
@@ -71,7 +71,6 @@ for(int i=0; i<=counter; i++)
     Node * temp_node1;
     Node * temp_node2;
     Node * new_root;
-    dictionary* elements_of_dictionary=new dictionary[counter+1];
 
     while(!Queue.empty())
     {
@@ -96,20 +95,7 @@ for(int i=0; i<=counter; i++)
         elements_of_dictionary[i].colors.g=temporary_array[i].g;
         elements_of_dictionary[i].colors.b=temporary_array[i].b;
     }
- cout<<"Slownik do kodowania/dekodowania huffmana: " << endl;
-    for(int i=0; i<=counter; i++)
-    {
-        cout << elements_of_dictionary[i].key <<"." ;
-        cout <<"\tR- "<< (int)elements_of_dictionary[i].colors.r ;
-        cout <<"\tG- "<< (int)elements_of_dictionary[i].colors.g ;
-        cout <<"\tB- "<< (int)elements_of_dictionary[i].colors.b ;
-         cout <<"\tD-" <<(int)elements_of_dictionary[i].code_length;
-        cout <<"\tkod - ";
-         for(int j=0; j<elements_of_dictionary[i].code_length; j++)
-        cout << (int)elements_of_dictionary[i].huffmancode[j];
 
-        cout <<endl;
-    }
     int maximum=0;
     for(int i=0; i<=counter; i++)
     {
@@ -118,43 +104,18 @@ for(int i=0; i<=counter; i++)
             maximum=elements_of_dictionary[i].code_length;
         }
     }
-    cout<<maximum<<endl;
-    ofstream file;
-    file.open("encoded.huff", ios::binary);
-    Uint16 dictionary_size=0;
-    Uint16  longest_code=0;
-    dictionary_size=dictionary_size|(counter+1);
     longest_code=longest_code | maximum;
-    file.write((const char *) &dictionary_size,sizeof(dictionary_size));
-    file.write((const char *) &longest_code,sizeof(longest_code));
-    Uint16 bmp_height;
-    Uint16 bmp_width;
-    bmp_height=new_bmp->height;
-    bmp_width=new_bmp->width;
-    file.write((const char*)&bmp_height,sizeof(Uint16));
-    file.write((const char*)&bmp_width,sizeof(Uint16));
+
+    ofstream file;
+    dictionary_size=dictionary_size|(counter+1);
+ 
     Uint8 huffman_code=0;
     Uint8 length=0;
-    for(int i=0; i<=counter; i++)
-    {
-        file.write((const char *) & elements_of_dictionary[i].colors.r,sizeof(Uint8));
-        file.write((const char *) & elements_of_dictionary[i].colors.g,sizeof(Uint8));
-        file.write((const char *) & elements_of_dictionary[i].colors.b,sizeof(Uint8));
-        length=elements_of_dictionary[i].code_length|length;
-        file.write((const char *) & length,sizeof(length));
-        length=0;
-       for(int j=0; j<elements_of_dictionary[i].code_length; j++)
-        {
-           // huffman_code<<1;
-            huffman_code=huffman_code|elements_of_dictionary[i].huffmancode[j];
-            file.write((const char *)&huffman_code,sizeof(huffman_code));
-            huffman_code=0;
-        }
-    }
+   
     int counter2=0;
     SDL_Color temporary1;
     Uint8 temp1=0;
-
+    int count=0;
      for(int y=0; y<new_bmp->height;y++)
         {
        for(int x=0; x<new_bmp->width; x++)
@@ -176,7 +137,8 @@ for(int i=0; i<=counter; i++)
                                         }
                                         else
                                         {
-                                           file.write((const char *)&temp1,sizeof(Uint8));
+                                           out[count]=temp1;
+                                           count++;
                                            temp1=0;
                                            counter2=1;
                                            temp1=temp1 | elements_of_dictionary[i].huffmancode[j];
@@ -187,8 +149,7 @@ for(int i=0; i<=counter; i++)
            }
         }
         }
-        delete[] elements_of_dictionary;
-        file.close();
+    return count;
 }
 
 /**
@@ -196,61 +157,38 @@ for(int i=0; i<=counter; i++)
  * @param  new_bmp structure for BMP essentials from huff file
  * @return true if all done correctly
  */
-bool huffman_decoding(conv_bmp* new_bmp)
+conv_bmp* huffman_decoding(Uint16 bmp_height,Uint16 bmp_width, Uint16 dictionary_size,Uint16 the_longest_code,dictionary *elements_of_dictionary, Uint8 *in, int csize)
 {
-   Uint16 dictionary_size=0;
-   Uint16 the_longest_code=0;
-   Uint8 code_huff=0;
-   Uint8 code_length=0;
-   cout<<"Odczytano z pliku:"<<endl;
-   ifstream file;
-   file.open("encoded.huff",ios::binary);
-   file.read((char *) & dictionary_size ,sizeof(Uint16));
-   file.read((char *) & the_longest_code ,sizeof(Uint16));
-   dictionary *elements_of_dictionary=new dictionary[dictionary_size];
 
-   Uint16 bmp_heigth;
-   Uint16 bmp_width;
 
-   file.read(( char*) & bmp_heigth,sizeof(Uint16));
-   file.read(( char*) & bmp_width,sizeof(Uint16));
-
-   new_bmp->height=bmp_heigth;
-   new_bmp->width=bmp_width;
-
-   for(int i=0; i<dictionary_size; i++)
-   {
-       elements_of_dictionary[i].key=i;
-       file.read((char *)&elements_of_dictionary[i].colors.r,sizeof(Uint8));
-       file.read((char *)&elements_of_dictionary[i].colors.g,sizeof(Uint8));
-       file.read((char *)&elements_of_dictionary[i].colors.b,sizeof(Uint8));
-       file.read((char *) & code_length,sizeof(Uint8));
-
-       elements_of_dictionary[i].code_length=code_length;
-
-        for(int j=0; j<elements_of_dictionary[i].code_length; j++)
-        {
-             file.read((char *) & code_huff,sizeof(Uint8));
-             elements_of_dictionary[i].huffmancode[j]=code_huff;
-             code_huff=0;
-        }
-   }
-    cout<<dictionary_size<<endl;
-   for(int i=0; i<dictionary_size; i++)
+   /*conv_bmp *new_bmp=new conv_bmp;
+    
+   new_bmp->red_color   = new Uint8[bmp_height];
+   new_bmp->green_color = new Uint8[bmp_height];
+   new_bmp->blue_color  =  new Uint8[bmp_height];
+   for(int i=0;i<bmp_height;i++)
     {
-        cout << elements_of_dictionary[i].key <<"." ;
-        cout <<"\tR- "<< (int)elements_of_dictionary[i].colors.r ;
-        cout <<"\tG- "<< (int)elements_of_dictionary[i].colors.g ;
-        cout <<"\tB- "<< (int)elements_of_dictionary[i].colors.b ;
-        cout <<"\tD-" <<(int)elements_of_dictionary[i].code_length;
-        cout <<"\tkod - ";
-        for(int j=0; j<elements_of_dictionary[i].code_length; j++)
-         cout << (int)elements_of_dictionary[i].huffmancode[j];
-
-        cout <<endl;
+        new_bmp->red_color[i] = new Uint8[bmp_width];
+        new_bmp->green_color[i] = new Uint8[bmp_width];
+        new_bmp->blue_color[i] = new Uint8[bmp_width];
     }
+*/
+    conv_bmp *new_bmp = (conv_bmp*)malloc(sizeof(conv_bmp));
+
+    new_bmp->red_color = (Uint8**)malloc(sizeof(Uint8*) * bmp_height); 
+    new_bmp->green_color = (Uint8**)malloc(sizeof(Uint8*) * bmp_height);
+    new_bmp->blue_color = (Uint8**)malloc(sizeof(Uint8*) * bmp_height);
+    for(int i=0;i<bmp_height;i++)
+    {
+        new_bmp->red_color[i] = (Uint8*)malloc(sizeof(Uint8) * bmp_width);
+        new_bmp->green_color[i] = (Uint8*)malloc(sizeof(Uint8) * bmp_width);
+        new_bmp->blue_color[i] = (Uint8*)malloc(sizeof(Uint8) * bmp_width);
+    }
+        new_bmp->height=bmp_height;
+        new_bmp->width=bmp_width;
+
+    Uint8 code_huff=0;
     Uint8 *search_array = new Uint8[the_longest_code];
-    code_huff=0;
     int code_length_search=1;
     int height=0;
     int width=0;
@@ -258,10 +196,10 @@ bool huffman_decoding(conv_bmp* new_bmp)
     Uint8 mask=0;
 
 
-    while(!file.eof())
+  for(int i=0; i<csize; i++)
     {
 
-       file.read((char *) & code_huff,sizeof(Uint8));
+       code_huff=in[i];
 
        for(int i=7; i>=0; i--)
        {
@@ -302,9 +240,8 @@ bool huffman_decoding(conv_bmp* new_bmp)
        }
     }
         delete[] search_array;
-        delete[] elements_of_dictionary;
-        file.close();
 
+    return new_bmp;
 }
 /**
  * Build huffman code for particular element of dictionary

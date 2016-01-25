@@ -35,15 +35,16 @@ struct dictionary{
 /**
  * Compress bmp to huff file
  * @param  new_bmp structure which holds BMP essentials
- * @return true if all done correctly
+ * @param out output array 
+ * @return size of compress data
  */
-bool huffman_encoding(const conv_bmp* new_bmp);
+int huffman_encoding(const conv_bmp* new_bmp,Uint8* out,Uint16  &dictionary_size,Uint16 &longest_code,dictionary * elements_of_dictionary);
 /**
  * Deompress huff file to bmp
  * @param  new_bmp structure for BMP essentials from huff file
  * @return true if all done correctly
  */
-bool  huffman_decoding(conv_bmp* new_bmp);
+conv_bmp* huffman_decoding(Uint16 bmp_heigth,Uint16 bmp_width, Uint16 dictionary_size,Uint16 the_longest_code,dictionary *elements_of_dictionary, Uint8 *in, int csize);
 /**
  * Build huffman code for particular element of dictionary
  * @param  Node for huffman tree
