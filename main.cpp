@@ -25,8 +25,9 @@ void help(char * pname)
 	printf("\tand the action is decoding.\n");
 	printf("\tIf input file is .bmp, then following options are available,\n");
 	printf("\tand the action is encoding:\n");
-	printf("\t\t h\tHuffman compression\n");
-	printf("\t\t l\tLZ77 compression\n");
+	printf("\t\tp\tbyte packing (done also when using other algorithms)\n");
+	printf("\t\th\tHuffman compression\n");
+	printf("\t\tl\tLZ77 compression\n");
 	printf("\tProgram always cuts images to be 4-bit per channel.\n\n");
 }
 
@@ -48,7 +49,7 @@ int main(int argc, char** argv)
 		
 		if(strncmp((char*)id, "HCI", 3))
 		{
-			printf("Not a HCI file. Exiting...\n");
+			printf("Error! Input is not a HCI file. Exiting...\n");
 			return -1;
 		}
 
@@ -66,16 +67,36 @@ int main(int argc, char** argv)
 		{
 			case ENC_NONE:
 			{
+				printf("Image is compressed using byte-packing algorithm.\n");
+				// byte packing
+				printf("=== Byte-packing started. ===\n");
+				int bp_size;
+				fread(&bp_size, sizeof(uint32_t), 1, fin);		// read size
+				printf("Data size read. %d bytes.\n", bp_size);
+
+				uint8_t *data = (uint8_t*)malloc(bp_size*sizeof(uint8_t));
+				printf("Buffers allocated.\n");
+
+				fread(data, sizeof(uint8_t), bp_size, fin);		// read data
+				printf("Data read.\n");
+
+				bmp = unpack(width, height, data);
+				printf("Unpacking done.\n=== DONE ===\n");
+
 				break;
 			}
 
 			case ENC_HUFFMAN:
 			{
+				printf("Image is compressed using Huffman algorithm.\n");
+				// huffman
 				break;
 			}
 
 			case ENC_LZ77:
 			{
+				printf("Image is compressed using LZ77 algorithm.\n");
+				// lz77
 				printf("=== LZ77 started. ===\n");
 				int lz_dict_size;
 				int lz_size;
@@ -109,16 +130,25 @@ int main(int argc, char** argv)
 
 				break;
 			}
+
+			default:
+			{
+				printf("Error! Compression code %d not known. Input file is probably corrupted. Exiting...\n", encoding);
+				return -1;
+			}
 		}
 
 		SDL_Surface *sur = SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
+		printf("New surface created.\n");
 		
 		// push image into surface
 		for(int i=0; i < height; i++)
 			for(int j=0; j < width; j++)
 				setPixel(j, i, sur, bmp->red_color[i][j]*16, bmp->green_color[i][j]*16, bmp->blue_color[i][j]*16);
+		printf("Image pushed.\n");
 
 		SDL_SaveBMP(sur, argv[2]);		// save surface to bmp file
+		printf("Saved.\n=== DONE ===\n");
 
 		// clean
 		freeStruct(bmp);
@@ -137,12 +167,30 @@ int main(int argc, char** argv)
 		uint8_t *out;	// ouput data
 		int csize;		// size of compressed data
 
+		// byte packing specific data
+		uint32_t bp_size;
+
+		// huffman specific data
 		// tutaj wrzuccie zmienne potrzebne do zapisu
+		
+		// lz77 specific data
 		uint8_t lz_dict_size;	//	dictionary size
 		uint32_t lz_size;		// uncompressed data size
 
 		switch(argv[1][0])
 		{
+			case 'p':
+			case 'P':
+			{
+				// byte packing
+				encoding = ENC_NONE;
+				printf("=== Byte-packing started. ===\n");
+				out = pack(&bmp, (int*)&bp_size);
+				freeStruct(&bmp);
+				printf("Packed succesfully. %d bytes.\n=== DONE ===\n", bp_size);
+				break;
+			}
+
 			case 'h':
 			case 'H':
 			{
@@ -193,20 +241,30 @@ int main(int argc, char** argv)
 			fwrite(&width, sizeof(uint32_t), 1, fout);	// width
 			fwrite(&height, sizeof(uint32_t), 1, fout);	// height
 			fwrite(&encoding, sizeof(uint8_t), 1, fout);// encoding type
+			printf("Main header written.\n");
 			// write header for compression algorithm
-			if(encoding == ENC_HUFFMAN)
+			if(encoding == ENC_NONE)
+			{
+				fwrite(&bp_size, sizeof(uint32_t), 1, fout);	// bp compressed data size
+				printf("ENC_NONE header written.\n");
+			}
+			else if(encoding == ENC_HUFFMAN)
 			{
 				// tutaj zapis naglowka dla huffmana
+				printf("ENC_HUFFMAN header written.\n");
 			}
 			else if(encoding == ENC_LZ77)
 			{
 				fwrite(&lz_dict_size, sizeof(uint8_t), 1, fout);	// lz dictionary size
 				fwrite(&lz_size, sizeof(uint32_t), 1, fout);		// lz uncompressed size
+				printf("ENC_LZ77 header written.\n");
 			}
 			// write compressed data
 			fwrite(out, sizeof(uint8_t), csize, fout);
+			printf("Data written.\n");
 			free(out);
 			fclose(fout);
+			printf("Saved.\n=== DONE ===\n");
 		}
 		else
 		{
