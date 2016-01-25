@@ -15,10 +15,14 @@
 #define ENC_HUFFMAN		1
 #define ENC_LZ77		2
 
-void help(char * pname)
+void header(void)
 {
 	printf("\nhciconv - Hopefully Compressed Image converter\n");
 	printf("(C) 2015-2016 Grzegorz Kowalski, Bartosz Zielnik, Piotr Mańkowski, Dariusz Szyszlak\n\n");
+}
+
+void help(char * pname)
+{
 	printf("USAGE:\n");
 	printf("\t%s <compression> [input file] [output file]\n", pname);
 	printf("\tIf input file is .hci, then there are no options available,\n");
@@ -34,7 +38,7 @@ void help(char * pname)
 
 int main(int argc, char** argv)
 {
-
+	header();
 	if(argc < 3)
 	{
 		help(argv[0]);
