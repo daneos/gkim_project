@@ -3,7 +3,7 @@
 
 #include <sys/types.h>
 #include <SDL/SDL.h>
-#include "guitool.h"
+#include "surfacetool.h"
 
 typedef struct _conv_bmp {
 	int height;

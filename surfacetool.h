@@ -1,5 +1,5 @@
-#if !defined(__GUITOOL_H__)
-#	define __GUITOOL_H___
+#if !defined(__SURFACETOOL_H__)
+#	define __SURFACETOOL_H___
 
 #include <SDL/SDL.h>
 

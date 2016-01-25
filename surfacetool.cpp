@@ -1,4 +1,4 @@
-#include "guitool.h"
+#include "surfacetool.h"
 
 /**
  * Set pixel color in SDL_Surface

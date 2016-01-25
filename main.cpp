@@ -3,7 +3,7 @@
 #include <inttypes.h>
 
 #include "bmptool.h"
-#include "guitool.h"
+#include "surfacetool.h"
 #include "packer.h"
 #include "lz77.h"
 #include "huffman.h"
@@ -13,7 +13,6 @@
 #define ENC_NONE		0
 #define ENC_HUFFMAN		1
 #define ENC_LZ77		2
-
 
 void help(char * pname)
 {
