@@ -104,14 +104,14 @@ int main(int argc, char** argv)
 				printf("Decompression done.\n");
 
 				bmp = unpack(width, height, out);
-				free(out);
+				//free(out);
 				printf("Unpacking done.\n=== DONE ===\n");
 
 				break;
 			}
 		}
 
-		SDL_Surface *sur = SDL_CreateRGBSurface(0, width, height, 24, 0, 0, 0, 0);
+		SDL_Surface *sur = SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
 		
 		// push image into surface
 		for(int i=0; i < height; i++)

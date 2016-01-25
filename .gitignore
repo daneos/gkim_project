@@ -36,3 +36,15 @@ sublime-project/*
 
 # Output file
 hciconv
+
+# Testing stuff
+*.hci
+*.bmp
+
+# Weird stuff
+bin/*
+
+# Probably something from CB
+*.cbp
+*.depend
+*.layout
