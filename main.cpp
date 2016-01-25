@@ -316,22 +316,25 @@ int main(int argc, char** argv)
 			else if(encoding == ENC_HUFFMAN)
 			{
 				// Huffman header
-
+				printf("Slownik wysylany \n");
 				fwrite(&dictionary_size, sizeof(Uint16), 1, fout);	// width
 				fwrite(&longest_code, sizeof(Uint16), 1, fout);	// width
+				printf("dictionary_size  %d\n",dictionary_size);
 				for(int i=0; i<dictionary_size; i++)
     				{
-				        fwrite(&elements_of_dictionary[i].colors.r,sizeof(Uint8),1, fout);
-				        fwrite(&elements_of_dictionary[i].colors.g,sizeof(Uint8),1, fout);
-				        fwrite(&elements_of_dictionary[i].colors.b,sizeof(Uint8),1, fout);
+				        fwrite(&elements_of_dictionary[i].colors.r, sizeof(Uint8) ,1, fout);
+				        fwrite(&elements_of_dictionary[i].colors.g, sizeof(Uint8) ,1, fout);
+				        fwrite(&elements_of_dictionary[i].colors.b, sizeof(Uint8) ,1, fout);
 				        length=elements_of_dictionary[i].code_length|length;
 				        fwrite(&length,sizeof(Uint8),1,fout);
 				        length=0;
+
 	      			 for(int j=0; j<elements_of_dictionary[i].code_length; j++)
 				        {
 				           // huffman_code<<1;
-				            huffman_code=huffman_code|elements_of_dictionary[i].huffmancode[j];
+				            huffman_code=elements_of_dictionary[i].huffmancode[j];
 				            fwrite(&huffman_code,sizeof(huffman_code),1,fout);
+				            printf("%d ", huffman_code );
 				            huffman_code=0;
 				        }
    					 }

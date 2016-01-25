@@ -196,10 +196,10 @@ conv_bmp* huffman_decoding(Uint16 bmp_height,Uint16 bmp_width, Uint16 dictionary
     Uint8 mask=0;
 
 
-  for(int i=0; i<csize; i++)
+  for(int j=0; j<csize; j++)
     {
 
-       code_huff=in[i];
+       code_huff=in[j];
 
        for(int i=7; i>=0; i--)
        {
