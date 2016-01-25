@@ -41,6 +41,88 @@ int main(int argc, char** argv)
 	if(argc < 4)
 	{
 		// decoding
+		FILE *fin = fopen(argv[1], "rb");
+		uint8_t id[3];
+		
+		fread(id, sizeof(uint8_t), 3, fin);		// read id
+		
+		if(strncmp((char*)id, "HCI", 3))
+		{
+			printf("Not a HCI file. Exiting...\n");
+			return -1;
+		}
+
+		int width;
+		int height;
+		fread(&width, sizeof(uint32_t), 1, fin);	// read image size
+		fread(&height, sizeof(uint32_t), 1, fin);
+
+		int encoding;
+		fread(&encoding, sizeof(uint8_t), 1, fin);	// read encoding
+
+		conv_bmp *bmp;		// here a decoded bmp image will be saved
+
+		switch(encoding)
+		{
+			case ENC_NONE:
+			{
+				break;
+			}
+
+			case ENC_HUFFMAN:
+			{
+				break;
+			}
+
+			case ENC_LZ77:
+			{
+				printf("=== LZ77 started. ===\n");
+				int lz_dict_size;
+				int lz_size;
+				fread(&lz_dict_size, sizeof(uint8_t), 1, fin);	// read lz77 parameters
+				fread(&lz_size, sizeof(uint32_t), 1, fin);
+				printf("Parameters read.\n");
+				printf("dictionary = %d\nlz_size = %d\n", lz_dict_size, lz_size);
+				
+				long data_start = ftell(fin);
+				fseek(fin, 0, SEEK_END);
+				long data_end = ftell(fin);
+				long data_len = data_end - data_start;			// find out length of data
+				printf("Data size read. %ld bytes.\n", data_len);
+				
+				fseek(fin, data_start, SEEK_SET);				// return to previous position
+
+				uint8_t *data = (uint8_t*)malloc(data_len*sizeof(uint8_t));
+				fread(data, sizeof(uint8_t), data_len, fin);	// read compressed data
+				printf("Data read.\n");
+
+				uint8_t *out = (uint8_t*)malloc(lz_size*sizeof(uint8_t));
+				printf("Buffers allocated.\n");
+
+				lz77_decompress(data, out, data_len, lz_size, lz_dict_size);
+				free(data);
+				printf("Decompression done.\n");
+
+				bmp = unpack(width, height, out);
+				free(out);
+				printf("Unpacking done.\n=== DONE ===\n");
+
+				break;
+			}
+		}
+
+		SDL_Surface *sur = SDL_CreateRGBSurface(0, width, height, 24, 0, 0, 0, 0);
+		
+		// push image into surface
+		for(int i=0; i < height; i++)
+			for(int j=0; j < width; j++)
+				setPixel(j, i, sur, bmp->red_color[i][j]*16, bmp->green_color[i][j]*16, bmp->blue_color[i][j]*16);
+
+		SDL_SaveBMP(sur, argv[2]);		// save surface to bmp file
+
+		// clean
+		freeStruct(bmp);
+		free(bmp);
 	}
 	else
 	{
@@ -77,6 +159,7 @@ int main(int argc, char** argv)
 				lz_dict_size = 255;
 				int lookahead_size = 8;
 				printf("=== LZ77 started. ===\n");
+				printf("dictionary = %d\nlookahead = %d\n", lz_dict_size, lookahead_size);
 
 				uint8_t *packed = pack(&bmp, (int*)&lz_size);
 				freeStruct(&bmp);

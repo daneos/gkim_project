@@ -1,7 +1,6 @@
 #if !defined(__PACKER_H__)
 #	define __PACKER_H___
 
-#include <math.h>
 #include "bmptool.h"
 
 uint8_t *pack(conv_bmp* bmp, int *size);
