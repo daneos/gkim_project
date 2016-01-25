@@ -50,6 +50,6 @@ bin/*
 *.layout
 
 # TeX files
-.aux
-.log
-.pdf
+*.aux
+*.log
+*.pdf
