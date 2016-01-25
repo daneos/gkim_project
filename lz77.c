@@ -102,16 +102,6 @@ void printpart(uint8_t *buf, int start, int end)
 }
 
 /**
- * Convert conv_bmp structure to uint8_t array expected by lz77 compressor
- * @param bmp conv_bmp structure
- * @return input array for lz77
- */
-uint8_t *bmp_to_lz77(conv_bmp *bmp)
-{
-	return NULL;
-}
-
-/**
  * LZ77 Compressor function
  * @param in input array
  * @param out output array
@@ -186,43 +176,4 @@ void lz77_decompress(uint8_t *in, uint8_t *out, int csize, int size, int k)
 
 	memcpy(out, dict+k, size);		// copy data from dict to output
 	clean(dict);					// free dict memory
-}
-
-/**
- * Computes bit layout of position/length pair
- * @param k dictionary size
- * @param n lookahead size
- * @return mask, where 0s are position and 1s are length
- */
-uint8_t compute_packer_params(int k, int n)
-{
-	return 3;
-}
-
-/**
- * LZ77 Packer function
- * @param in input array
- * @param out output array
- * @param size amount of input data
- * @param k dictionary size
- * @param n lookahead size
- * @return size of packed data
- */
-int lzpack(uint8_t *in, uint8_t *out, int size, int k, int n)
-{
-	return -1;
-}
-
-/**
- * LZ77 Unpacker function
- * @param in input array
- * @param out output array
- * @param csize amount of compressed data
- * @param size amount of uncompressed data
- * @param k dictionary size
- * @param n lookahead size
- */
-void lzunpack(uint8_t *in, uint8_t *out, int csize, int size, int k, int n)
-{
-	return;
 }

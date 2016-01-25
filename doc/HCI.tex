@@ -1,0 +1,64 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{polski}
+\usepackage{graphicx}
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\note}{\textbf{Uwaga:} }
+
+\begin{document}
+	\input{title.tex}
+
+	\section{Obsługa programu}
+		\subsection{Kompilacja}
+			\subsubsection{GNU/Linux}
+				Aby skompilować program w systemie Linux należy mieć zainstalowany pakiet \code{libsdl2-dev} (lub odpowiednik w używanej dystrybucji).
+				Kompilacja przeprowadzana jest automatycznie przez skrypt \code{make.sh} dołączony do źródeł projektu.
+			\subsubsection{Windows}
+				Aby skompilować program w systemie Windows...
+		\subsection{Obsługa}
+			Program obsługiwany jest z linii poleceń. Przyjmuje różną ilość argumentów, w zależności od akcji, którą chcemy wykonać.\\
+			Wywołanie programu z trzema argumentami powduje uruchomienie konwersji z \code{.bmp} na \code{.hci}.\\
+			Jako pierwszy argument należy podać typ kompresji, jako drugi wejściowy plik \code{.bmp}, a jako trzeci wyjściowy plik \code{.hci}.\\
+			Program obsługuje 3 rodzaje kompresji:
+			\begin{itemize}
+				\item \code{p} -- \textbf{byte-packing} -- algorytm konwertujący każdy kanał na 4 bity i pakujący 2 kanały na bajt
+				\item \code{h} -- \textbf{Huffman} -- algorytm kodowania Huffmana
+				\item \code{l} -- \textbf{LZ77} -- algorytm kompresji Lempel-Ziv 77
+			\end{itemize}
+			\note{
+				Algorytm Huffmana pracuje na niespakowanych danych 4-bitowych.\\
+				Algorytm LZ77 pracuje na spakowanych danych 4-bitowych (na wyniku algorytmu byte-packing).
+			}\\
+			Przykładowe wywołanie programu:\\
+			\code{\$ hciconv h obrazek.bmp obrazek.hci}\\
+			spowoduje umieszczenie w pliku \code{obrazek.hci} grafiki z pliku \code{obrazek.bmp} skompresowanej kodem Huffmana.\\
+			Uruchomienie programu z dwoma argumentami powoduje dekompresję pliku \code{.hci} do pliku \code{.bmp}.
+			Nie trzeba podawać algorytmu jakim plik został zakodowany, ponieważ program potrafi sam wykryć rodzaj kompresji.\\
+			Przykładowe wywołanie programu:\\
+			\code{\$ hciconv obrazek.hci obrazek.bmp}\\
+			spowoduje zdekodowanie pliku \code{obrazek.hci} i zapisanie wyniku w pliku \code{obrazek.bmp}.
+
+	\section{Opis formatu}
+		Format HCI (Hopefully Compressed Image) to graficzny format binarny.\\
+		Plik w tym formacie składa się z kilku elementów: 12-bajtowego nagłówka oraz danych kodowania.
+		\subsection{Nagłówek}
+			Nagłówek pliku HCI składa się z następujących elementów:
+			\begin{itemize}
+				\item identyfikator (3 bajty, zawsze równy ciągowi znaków "HCI") -- pozwala stwierdzić czy dany plik jest plikiem w formacie HCI
+				\item szerokość obrazka (4 bajty)
+				\item wysokość obrazka (4 bajty)
+				\item typ kompresji (1 bajt) -- pozwala rozpoznać algorytm, którym zakodowane są dane
+			\end{itemize}
+		\subsection{Dane kodowania}
+			Format danych zależy od użytego algorytmu, ale ogólnie dane te składają się z nagłówka oraz właściwych, zakodowanych danych.
+			\subsubsection{Byte-packing}
+				W nagłówku algorytmu byte-packing znajduje się jedynie 4-bajtowa długość danych.
+			\subsubsection{Huffman}
+				Nagłówek algorytmu Huffmana składa się z...
+			\subsubsection{LZ77}
+				5-bajtowy nagłówek algorytmu LZ77 zawiera dwa pola: 1-bajtowy rozmiar słownika oraz 4-bajtowy rozmiar rozkompresowanych danych, używany do
+				poprawnego ustawienia buforów dekompresora.
+
+\end{document}

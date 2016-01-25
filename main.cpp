@@ -19,7 +19,7 @@ void help(char * pname)
 	printf("hciconv - Hopefully Compressed Image converter\n");
 	printf("(C) 2015-2016 Grzegorz Kowalski, Bartosz Zielnik, Piotr Mańkowski, Dariusz Szyszlak\n\n");
 	printf("USAGE:\n");
-	printf("\t%s [options] [input file] [output file]\n", pname);
+	printf("\t%s <compression> [input file] [output file]\n", pname);
 	printf("\tIf input file is .hci, then there are no options available,\n");
 	printf("\tand the action is decoding.\n");
 	printf("\tIf input file is .bmp, then following options are available,\n");

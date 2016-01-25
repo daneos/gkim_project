@@ -48,3 +48,8 @@ bin/*
 *.cbp
 *.depend
 *.layout
+
+# TeX files
+.aux
+.log
+.pdf
