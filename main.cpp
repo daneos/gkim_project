@@ -92,6 +92,7 @@ int main(int argc, char** argv)
 			{
 				printf("Image is compressed using Huffman algorithm.\n");
 				// huffman
+				printf("=== Huffman started. ===\n");
 				Uint16 dictionary_size=0;
    				Uint16 the_longest_code=0;
    				Uint8 code_huff=0;
@@ -99,10 +100,12 @@ int main(int argc, char** argv)
    				int csize;
    				fread(&dictionary_size, sizeof(Uint16), 1, fin);
    				fread(&the_longest_code, sizeof(Uint16), 1, fin);
+   				printf("Parameters read.\n");
    				printf("%d dict size \n",dictionary_size );
    				printf("%d longest code\n", the_longest_code);
 
    				dictionary *elements_of_dictionary=new dictionary[dictionary_size];
+   				printf("Dictionary allocated.\n");
    				
    				for(int i=0; i<dictionary_size; i++)
                 {
@@ -120,12 +123,16 @@ int main(int argc, char** argv)
             				 code_huff=0;
        				 }
    			   }
+   			   printf("Dictionary read.\n");
 
    				fread(&csize, sizeof(int),1,fin);
    				printf("%d csize\n",csize );
    				Uint8 *in = new Uint8[csize];
+   				printf("Buffers allocated.\n");
    				fread(in,sizeof(Uint8),csize,fin);
+   				printf("Data read.\n");
 				bmp = huffman_decoding(height,width,dictionary_size,the_longest_code,elements_of_dictionary,in,csize);
+				printf("Decompression done.\n=== DONE ===\n");
 				break;
 			}
 
@@ -259,7 +266,10 @@ int main(int argc, char** argv)
 				printf("=== Huffman started. ===\n");
 
 				out = (uint8_t*)malloc(bmp.width*bmp.height*sizeof(uint8_t));
+				printf("Buffers allocated.\n");
+
 				csize = huffman_encoding(&bmp,out,dictionary_size,longest_code,elements_of_dictionary);
+				printf("Compression done. %d bytes.\n=== DONE ===\n", csize);
 			
 				break;
 			}
@@ -316,7 +326,6 @@ int main(int argc, char** argv)
 			else if(encoding == ENC_HUFFMAN)
 			{
 				// Huffman header
-				printf("Slownik wysylany \n");
 				fwrite(&dictionary_size, sizeof(Uint16), 1, fout);	// width
 				fwrite(&longest_code, sizeof(Uint16), 1, fout);	// width
 				printf("dictionary_size  %d\n",dictionary_size);
@@ -334,7 +343,6 @@ int main(int argc, char** argv)
 				           // huffman_code<<1;
 				            huffman_code=elements_of_dictionary[i].huffmancode[j];
 				            fwrite(&huffman_code,sizeof(huffman_code),1,fout);
-				            printf("%d ", huffman_code );
 				            huffman_code=0;
 				        }
    					 }
