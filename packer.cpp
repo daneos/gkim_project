@@ -41,6 +41,10 @@ conv_bmp *unpack(int width, int height, uint8_t *data)
 {
 	Uint8 doublecolor;
 	conv_bmp *new_bmp = (conv_bmp*)malloc(sizeof(conv_bmp));
+
+	new_bmp->width = width;
+	new_bmp->height = height;
+
 	new_bmp->red_color = (Uint8**)malloc(sizeof(Uint8*) * height);  //allocate memory for colors
 	new_bmp->green_color = (Uint8**)malloc(sizeof(Uint8*) * height);
 	new_bmp->blue_color = (Uint8**)malloc(sizeof(Uint8*) * height);

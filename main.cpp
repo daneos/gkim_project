@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <inttypes.h>
+#include <math.h>
 
 #include "bmptool.h"
 #include "surfacetool.h"
@@ -56,7 +57,10 @@ int main(int argc, char** argv)
 		int height;
 		fread(&width, sizeof(uint32_t), 1, fin);	// read image size
 		fread(&height, sizeof(uint32_t), 1, fin);
-		Uint8 encoding;
+		printf("Loaded image: HCI %dx%d\n", width, height);
+
+		uint8_t encoding;
+		
 		fread(&encoding, sizeof(uint8_t), 1, fin);	// read encoding
 
 		conv_bmp *bmp;		// here a decoded bmp image will be saved
@@ -130,8 +134,8 @@ int main(int argc, char** argv)
 				printf("Image is compressed using LZ77 algorithm.\n");
 				// lz77
 				printf("=== LZ77 started. ===\n");
-				int lz_dict_size;
-				int lz_size;
+				uint8_t lz_dict_size;
+				uint32_t lz_size;
 				fread(&lz_dict_size, sizeof(uint8_t), 1, fin);	// read lz77 parameters
 				fread(&lz_size, sizeof(uint32_t), 1, fin);
 				printf("Parameters read.\n");
@@ -185,6 +189,7 @@ int main(int argc, char** argv)
 		// clean
 		freeStruct(bmp);
 		free(bmp);
+		SDL_FreeSurface(sur);
 	}
 	else
 	{
@@ -193,8 +198,27 @@ int main(int argc, char** argv)
 		LoadBMP(argv[2], &bmp);
 		uint32_t height = bmp.height;
 		uint32_t width = bmp.width;
+		printf("Loaded image: BMP %dx%d\n", width, height);
 		uint8_t id[3] = { 'H', 'C', 'I' };
 		uint8_t encoding = ENC_NONE;
+
+		if(strlen(argv[1]) > 1)
+			if(argv[1][1] == 'g' || argv[1][1] == 'G')	// if first argument is e.g. "hg" use grayscale
+			{
+				printf("Using grayscale.\n");
+				for(int i = 0; i < height; i++)
+				{
+					for(int j = 0; j < width; j++)
+					{
+						// convert image to grayscale
+						uint8_t avg = floor((bmp.red_color[i][j]*16 + bmp.green_color[i][j]*16 + bmp.blue_color[i][j]*16)/3);
+						bmp.red_color[i][j] = avg/16;
+						bmp.green_color[i][j] = avg/16;
+						bmp.blue_color[i][j] = avg/16;
+					}
+				}
+				printf("Image converted to grayscale.\n");
+			}
 
 		uint8_t *out;	// ouput data
 		int csize;		// size of compressed data
