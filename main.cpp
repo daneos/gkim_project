@@ -17,7 +17,7 @@
 
 void help(char * pname)
 {
-	printf("hciconv - Hopefully Compressed Image converter\n");
+	printf("\nhciconv - Hopefully Compressed Image converter\n");
 	printf("(C) 2015-2016 Grzegorz Kowalski, Bartosz Zielnik, Piotr Mańkowski, Dariusz Szyszlak\n\n");
 	printf("USAGE:\n");
 	printf("\t%s <compression> [input file] [output file]\n", pname);
@@ -28,7 +28,8 @@ void help(char * pname)
 	printf("\t\tp\tbyte packing (done also when using other algorithms)\n");
 	printf("\t\th\tHuffman compression\n");
 	printf("\t\tl\tLZ77 compression\n");
-	printf("\tProgram always cuts images to be 4-bit per channel.\n\n");
+	printf("\tProgram always cuts images to be 4-bit per channel.\n");
+	printf("\tYou can add \'g\' to the compression type to convert the image to grayscale.\n\n");
 }
 
 int main(int argc, char** argv)
@@ -228,7 +229,7 @@ int main(int argc, char** argv)
 			}
 
 		uint8_t *out;	// ouput data
-		int csize;		// size of compressed data
+		uint32_t csize;		// size of compressed data
 
 		// byte packing specific data
 		uint32_t bp_size;
@@ -346,7 +347,7 @@ int main(int argc, char** argv)
 				            huffman_code=0;
 				        }
    					 }
-   			    fwrite(&csize, sizeof(int), 1, fout);
+   			    fwrite(&csize, sizeof(uint32_t), 1, fout);
 				printf("ENC_HUFFMAN header written.\n");
 			}
 			else if(encoding == ENC_LZ77)
