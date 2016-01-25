@@ -1,3 +1,14 @@
+/**
+ * @package huffman encoder/decoder
+ * @file Implementation file
+ * Projekt GKIM
+ * Grzegorz Kowalski
+ * Bartosz Zielnik
+ * Piotr Mañkowski
+ * Dariusz Szyszlak
+ * version 1 | 01.2016
+ */
+
 #ifndef HUFFMAN_H_INCLUDED
 #define HUFFMAN_H_INCLUDED
 
@@ -31,24 +42,32 @@ struct dictionary{
     SDL_Color colors;
 
 };
-//two function for huffman algorithm
 /**
  * Compress bmp to huff file
  * @param  new_bmp structure which holds BMP essentials
- * @param out output array 
+ * @param  out output array
+ * @param  dictionary_size size of dictionary
+ * @param  longest_code longest code
+ * @param  elements_of_dictionary  dictionary
  * @return size of compress data
  */
 int huffman_encoding(const conv_bmp* new_bmp,Uint8* out,Uint16  &dictionary_size,Uint16 &longest_code,dictionary * elements_of_dictionary);
 /**
  * Deompress huff file to bmp
- * @param  new_bmp structure for BMP essentials from huff file
- * @return true if all done correctly
+ * @param  bmp_height  height of bmp
+ * @param  bmp_width   width of bmp
+ * @param  dictionary size  size of dictionary
+ * @param  the_longest_code longest code in dictionary
+ * @param  elements_of_dictionary  dictionary
+ * @param  in input array
+ * @param  csize size of in array
+ * @return pointer to decoded bmp
  */
-conv_bmp* huffman_decoding(Uint16 bmp_heigth,Uint16 bmp_width, Uint16 dictionary_size,Uint16 the_longest_code,dictionary *elements_of_dictionary, Uint8 *in, int csize);
+conv_bmp* huffman_decoding(Uint16 bmp_height ,Uint16 bmp_width, Uint16 dictionary_size,Uint16 the_longest_code,dictionary *elements_of_dictionary, Uint8 *in, int csize);
 /**
  * Build huffman code for particular element of dictionary
- * @param  Node for huffman tree
- * @param  Array c to build huffman tree
+ * @param  Node node for huffman tree
+ * @param  c array to build huffman tree
  * @param  length of huffman code
  * @param  dictionary
  *

@@ -96,34 +96,36 @@ int main(int argc, char** argv)
 			case ENC_HUFFMAN:
 			{
 				printf("Image is compressed using Huffman algorithm.\n");
-				// huffman
+				//huffman
 				printf("=== Huffman started. ===\n");
+
 				Uint16 dictionary_size=0;
    				Uint16 the_longest_code=0;
-   				Uint8 code_huff=0;
+   				Uint8  code_huff=0;
    				Uint16 code_length=0;
-   				int csize;
+   				int    csize;
+
    				fread(&dictionary_size, sizeof(Uint16), 1, fin);
    				fread(&the_longest_code, sizeof(Uint16), 1, fin);
+
    				printf("Parameters read.\n");
-   				printf("%d dict size \n",dictionary_size );
-   				printf("%d longest code\n", the_longest_code);
 
    				dictionary *elements_of_dictionary=new dictionary[dictionary_size];
    				printf("Dictionary allocated.\n");
-   				
+
    				for(int i=0; i<dictionary_size; i++)
                 {
                  elements_of_dictionary[i].key=i;
                    	 fread(&elements_of_dictionary[i].colors.r,sizeof(Uint8),1,fin);
                  	 fread(&elements_of_dictionary[i].colors.g,sizeof(Uint8),1,fin);
       				 fread(&elements_of_dictionary[i].colors.b,sizeof(Uint8),1,fin);
-       			     fread(&code_length,sizeof(Uint8),1,fin);
+       			     fread(&code_length, sizeof(Uint8), 1, fin);
+
       				 elements_of_dictionary[i].code_length=code_length;
 
         			for(int j=0; j<elements_of_dictionary[i].code_length; j++)
         			{
-           				  fread(&code_huff,sizeof(Uint8),1,fin);
+           				     fread(&code_huff,sizeof(Uint8),1,fin);
             				 elements_of_dictionary[i].huffmancode[j]=code_huff;
             				 code_huff=0;
        				 }
@@ -131,12 +133,13 @@ int main(int argc, char** argv)
    			   printf("Dictionary read.\n");
 
    				fread(&csize, sizeof(int),1,fin);
-   				printf("%d csize\n",csize );
    				Uint8 *in = new Uint8[csize];
    				printf("Buffers allocated.\n");
    				fread(in,sizeof(Uint8),csize,fin);
    				printf("Data read.\n");
 				bmp = huffman_decoding(height,width,dictionary_size,the_longest_code,elements_of_dictionary,in,csize);
+				delete[] in;
+				delete[] elements_of_dictionary;
 				printf("Decompression done.\n=== DONE ===\n");
 				break;
 			}
@@ -333,7 +336,7 @@ int main(int argc, char** argv)
 				// Huffman header
 				fwrite(&dictionary_size, sizeof(Uint16), 1, fout);	// width
 				fwrite(&longest_code, sizeof(Uint16), 1, fout);	// width
-				printf("dictionary_size  %d\n",dictionary_size);
+
 				for(int i=0; i<dictionary_size; i++)
     				{
 				        fwrite(&elements_of_dictionary[i].colors.r, sizeof(Uint8) ,1, fout);
@@ -351,6 +354,7 @@ int main(int argc, char** argv)
 				            huffman_code=0;
 				        }
    					 }
+
    			    fwrite(&csize, sizeof(uint32_t), 1, fout);
 				printf("ENC_HUFFMAN header written.\n");
 			}
