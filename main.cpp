@@ -168,7 +168,7 @@ int main(int argc, char** argv)
 		uint8_t encoding = ENC_NONE;
 
 		if(strlen(argv[1]) > 1)
-			if(argv[1][1] == 'g')	// if first argument is e.g. "hg" use grayscale
+			if(argv[1][1] == 'g' || argv[1][1] == 'G')	// if first argument is e.g. "hg" use grayscale
 			{
 				printf("Using grayscale.\n");
 				for(int i = 0; i < height; i++)
