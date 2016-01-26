@@ -1,3 +1,15 @@
+/**
+ * @package huffman encoder/decoder
+ * @file Implementation file
+ * Projekt GKIM
+ * Grzegorz Kowalski
+ * Bartosz Zielnik
+ * Piotr Mañkowski
+ * Dariusz Szyszlak
+ * version 1 | 01.2016
+ */
+
+
 #include<iostream>
 #include<fstream>
 #include"huffman.h"
@@ -7,7 +19,11 @@ using namespace std;
 /**
  * Compress bmp to huff file
  * @param  new_bmp structure which holds BMP essentials
- * @return true if all done correctly
+ * @param  out output array
+ * @param  dictionary_size size of dictionary
+ * @param  longest_code longest code
+ * @param  elements_of_dictionary  dictionary
+ * @return size of compress data
  */
 int huffman_encoding(const conv_bmp* new_bmp,Uint8* out,Uint16 &dictionary_size,Uint16 &longest_code,dictionary * elements_of_dictionary)
 {
@@ -53,10 +69,10 @@ int huffman_encoding(const conv_bmp* new_bmp,Uint8* out,Uint16 &dictionary_size,
         }
         }
 
-PriorityQueueFreq Queue;
+    PriorityQueueFreq Queue;
 
-for(int i=0; i<=counter; i++)
-{
+    for(int i=0; i<=counter; i++)
+    {
         Node * p=new Node;
         p->parent=NULL;
         p->left=NULL;
@@ -65,7 +81,7 @@ for(int i=0; i<=counter; i++)
         p->key=i;
         Queue.push(p);
         colors_frequency[i]=0;
-}
+    }
 
     Uint8 c[4096]={0};
     Node * temp_node1;
@@ -89,6 +105,7 @@ for(int i=0; i<=counter; i++)
 
     inorder(new_root,c,0,elements_of_dictionary);
     postorder_node_delete(new_root);
+
     for(int i=0; i<=counter; i++)
     {
         elements_of_dictionary[i].colors.r=temporary_array[i].r;
@@ -97,6 +114,7 @@ for(int i=0; i<=counter; i++)
     }
 
     int maximum=0;
+
     for(int i=0; i<=counter; i++)
     {
         if(maximum <elements_of_dictionary[i].code_length)
@@ -104,18 +122,17 @@ for(int i=0; i<=counter; i++)
             maximum=elements_of_dictionary[i].code_length;
         }
     }
-    longest_code=longest_code | maximum;
 
-    ofstream file;
+    longest_code=longest_code | maximum;
     dictionary_size=dictionary_size|(counter+1);
- 
+
     Uint8 huffman_code=0;
     Uint8 length=0;
-   
     int counter2=0;
     SDL_Color temporary1;
     Uint8 temp1=0;
     int count=0;
+
      for(int y=0; y<new_bmp->height;y++)
         {
        for(int x=0; x<new_bmp->width; x++)
@@ -154,30 +171,25 @@ for(int i=0; i<=counter; i++)
 
 /**
  * Deompress huff file to bmp
- * @param  new_bmp structure for BMP essentials from huff file
- * @return true if all done correctly
+ * @param  bmp_height  height of bmp
+ * @param  bmp_width   width of bmp
+ * @param  dictionary size  size of dictionary
+ * @param  the_longest_code longest code in dictionary
+ * @param  elements_of_dictionary  dictionary
+ * @param  in input array
+ * @param  csize size of in array
+ * @return decoded bmp
  */
 conv_bmp* huffman_decoding(Uint16 bmp_height,Uint16 bmp_width, Uint16 dictionary_size,Uint16 the_longest_code,dictionary *elements_of_dictionary, Uint8 *in, int csize)
 {
 
 
-   /*conv_bmp *new_bmp=new conv_bmp;
-    
-   new_bmp->red_color   = new Uint8[bmp_height];
-   new_bmp->green_color = new Uint8[bmp_height];
-   new_bmp->blue_color  =  new Uint8[bmp_height];
-   for(int i=0;i<bmp_height;i++)
-    {
-        new_bmp->red_color[i] = new Uint8[bmp_width];
-        new_bmp->green_color[i] = new Uint8[bmp_width];
-        new_bmp->blue_color[i] = new Uint8[bmp_width];
-    }
-*/
     conv_bmp *new_bmp = (conv_bmp*)malloc(sizeof(conv_bmp));
 
-    new_bmp->red_color = (Uint8**)malloc(sizeof(Uint8*) * bmp_height); 
+    new_bmp->red_color   = (Uint8**)malloc(sizeof(Uint8*) * bmp_height);
     new_bmp->green_color = (Uint8**)malloc(sizeof(Uint8*) * bmp_height);
-    new_bmp->blue_color = (Uint8**)malloc(sizeof(Uint8*) * bmp_height);
+    new_bmp->blue_color  = (Uint8**)malloc(sizeof(Uint8*) * bmp_height);
+
     for(int i=0;i<bmp_height;i++)
     {
         new_bmp->red_color[i] = (Uint8*)malloc(sizeof(Uint8) * bmp_width);
@@ -214,18 +226,20 @@ conv_bmp* huffman_decoding(Uint16 bmp_height,Uint16 bmp_width, Uint16 dictionary
             index=search_dictionary(search_array,elements_of_dictionary,code_length_search,dictionary_size);
             if(index>=0)
             {
-                if(height<new_bmp->height){
-                 new_bmp->red_color[height][width]=elements_of_dictionary[index].colors.r;
-                 new_bmp->green_color[height][width]=elements_of_dictionary[index].colors.g;
-                 new_bmp->blue_color[height][width]=elements_of_dictionary[index].colors.b;
+                if(height<new_bmp->height)
+                {
+                    new_bmp->red_color[height][width]=elements_of_dictionary[index].colors.r;
+                    new_bmp->green_color[height][width]=elements_of_dictionary[index].colors.g;
+                    new_bmp->blue_color[height][width]=elements_of_dictionary[index].colors.b;
                 }
                 for(int c=0; c<=the_longest_code; c++)
                 {
                     search_array[c]=0;
                 }
-                code_length_search=1;
 
+                code_length_search=1;
                 width++;
+
                 if(width==new_bmp->width)
                 {
                     height++;
@@ -245,8 +259,8 @@ conv_bmp* huffman_decoding(Uint16 bmp_height,Uint16 bmp_width, Uint16 dictionary
 }
 /**
  * Build huffman code for particular element of dictionary
- * @param  Node for huffman tree
- * @param  Array c to build huffman tree
+ * @param  Node node for huffman tree
+ * @param  c array to build huffman tree
  * @param  length of huffman code
  * @param  dictionary
  *
