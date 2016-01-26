@@ -18,7 +18,8 @@
 void header(void)
 {
 	printf("\nhciconv - Hopefully Compressed Image converter\n");
-	printf("(C) 2015-2016 Grzegorz Kowalski, Bartosz Zielnik, Piotr Mańkowski, Dariusz Szyszlak\n\n");
+	printf("(C) 2015-2016 Grzegorz Kowalski, Bartosz Zielnik, Piotr Mańkowski, Dariusz Szyszlak\n");
+	printf("Politechnika Krakowska - Wydział Inżynierii Elektrycznej i Komputerowej\n\n");
 }
 
 void help(char * pname)
@@ -38,6 +39,11 @@ void help(char * pname)
 
 int main(int argc, char** argv)
 {
+#if defined(_WIN32)
+	// even though I walk through the valley of the shadow of death, I will fear no evil, for you are with me
+	freopen("CON", "wt", stdout);
+	freopen("CON", "wt", stderr);
+#endif
 	header();
 	if(argc < 3)
 	{
@@ -259,6 +265,7 @@ int main(int argc, char** argv)
 				printf("=== Byte-packing started. ===\n");
 				out = pack(&bmp, (int*)&bp_size);
 				freeStruct(&bmp);
+				csize = bp_size;
 				printf("Packed succesfully. %d bytes.\n=== DONE ===\n", bp_size);
 				break;
 			}
