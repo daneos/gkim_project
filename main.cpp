@@ -106,43 +106,43 @@ int main(int argc, char** argv)
 				printf("=== Huffman started. ===\n");
 
 				Uint16 dictionary_size=0;
-   				Uint16 the_longest_code=0;
-   				Uint8  code_huff=0;
-   				Uint16 code_length=0;
-   				int    csize;
+				Uint16 the_longest_code=0;
+				Uint8  code_huff=0;
+				Uint16 code_length=0;
+				int    csize;
 
-   				fread(&dictionary_size, sizeof(Uint16), 1, fin);
-   				fread(&the_longest_code, sizeof(Uint16), 1, fin);
+				fread(&dictionary_size, sizeof(Uint16), 1, fin);
+				fread(&the_longest_code, sizeof(Uint16), 1, fin);
 
-   				printf("Parameters read.\n");
+				printf("Parameters read.\n");
 
-   				dictionary *elements_of_dictionary=new dictionary[dictionary_size];
-   				printf("Dictionary allocated.\n");
+				dictionary *elements_of_dictionary=new dictionary[dictionary_size];
+				printf("Dictionary allocated.\n");
 
-   				for(int i=0; i<dictionary_size; i++)
-                {
-                 elements_of_dictionary[i].key=i;
-                   	 fread(&elements_of_dictionary[i].colors.r,sizeof(Uint8),1,fin);
-                 	 fread(&elements_of_dictionary[i].colors.g,sizeof(Uint8),1,fin);
-      				 fread(&elements_of_dictionary[i].colors.b,sizeof(Uint8),1,fin);
-       			     fread(&code_length, sizeof(Uint8), 1, fin);
+				for(int i=0; i<dictionary_size; i++)
+				{
+				 elements_of_dictionary[i].key=i;
+					 fread(&elements_of_dictionary[i].colors.r,sizeof(Uint8),1,fin);
+					 fread(&elements_of_dictionary[i].colors.g,sizeof(Uint8),1,fin);
+					 fread(&elements_of_dictionary[i].colors.b,sizeof(Uint8),1,fin);
+					 fread(&code_length, sizeof(Uint8), 1, fin);
 
-      				 elements_of_dictionary[i].code_length=code_length;
+					 elements_of_dictionary[i].code_length=code_length;
 
-        			for(int j=0; j<elements_of_dictionary[i].code_length; j++)
-        			{
-           				     fread(&code_huff,sizeof(Uint8),1,fin);
-            				 elements_of_dictionary[i].huffmancode[j]=code_huff;
-            				 code_huff=0;
-       				 }
-   			   }
-   			   printf("Dictionary read.\n");
+					for(int j=0; j<elements_of_dictionary[i].code_length; j++)
+					{
+							 fread(&code_huff,sizeof(Uint8),1,fin);
+							 elements_of_dictionary[i].huffmancode[j]=code_huff;
+							 code_huff=0;
+					 }
+			   }
+			   printf("Dictionary read.\n");
 
-   				fread(&csize, sizeof(int),1,fin);
-   				Uint8 *in = new Uint8[csize];
-   				printf("Buffers allocated.\n");
-   				fread(in,sizeof(Uint8),csize,fin);
-   				printf("Data read.\n");
+				fread(&csize, sizeof(int),1,fin);
+				Uint8 *in = new Uint8[csize];
+				printf("Buffers allocated.\n");
+				fread(in,sizeof(Uint8),csize,fin);
+				printf("Data read.\n");
 				bmp = huffman_decoding(height,width,dictionary_size,the_longest_code,elements_of_dictionary,in,csize);
 				delete[] in;
 				delete[] elements_of_dictionary;
@@ -345,24 +345,24 @@ int main(int argc, char** argv)
 				fwrite(&longest_code, sizeof(Uint16), 1, fout);	// width
 
 				for(int i=0; i<dictionary_size; i++)
-    				{
-				        fwrite(&elements_of_dictionary[i].colors.r, sizeof(Uint8) ,1, fout);
-				        fwrite(&elements_of_dictionary[i].colors.g, sizeof(Uint8) ,1, fout);
-				        fwrite(&elements_of_dictionary[i].colors.b, sizeof(Uint8) ,1, fout);
-				        length=elements_of_dictionary[i].code_length|length;
-				        fwrite(&length,sizeof(Uint8),1,fout);
-				        length=0;
+				{
+					fwrite(&elements_of_dictionary[i].colors.r, sizeof(Uint8) ,1, fout);
+					fwrite(&elements_of_dictionary[i].colors.g, sizeof(Uint8) ,1, fout);
+					fwrite(&elements_of_dictionary[i].colors.b, sizeof(Uint8) ,1, fout);
+					length=elements_of_dictionary[i].code_length|length;
+					fwrite(&length,sizeof(Uint8),1,fout);
+					length=0;
 
-	      			 for(int j=0; j<elements_of_dictionary[i].code_length; j++)
-				        {
-				           // huffman_code<<1;
-				            huffman_code=elements_of_dictionary[i].huffmancode[j];
-				            fwrite(&huffman_code,sizeof(huffman_code),1,fout);
-				            huffman_code=0;
-				        }
-   					 }
+					for(int j=0; j<elements_of_dictionary[i].code_length; j++)
+					{
+						// huffman_code<<1;
+						huffman_code=elements_of_dictionary[i].huffmancode[j];
+						fwrite(&huffman_code,sizeof(huffman_code),1,fout);
+						huffman_code=0;
+					}
+				}
 
-   			    fwrite(&csize, sizeof(uint32_t), 1, fout);
+				fwrite(&csize, sizeof(uint32_t), 1, fout);
 				printf("ENC_HUFFMAN header written.\n");
 			}
 			else if(encoding == ENC_LZ77)
@@ -387,4 +387,3 @@ int main(int argc, char** argv)
 
 	return 0;
 }
-

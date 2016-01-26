@@ -27,11 +27,14 @@ void setPixel(int x, int y,SDL_Surface* screen, Uint8 R, Uint8 G, Uint8 B)
 				break;
 
 			case 3: //24-bit
-				if(SDL_BYTEORDER == SDL_BIG_ENDIAN) {
+				if(SDL_BYTEORDER == SDL_BIG_ENDIAN)
+				{
 					p[0] = (pixel >> 16) & 0xff;
 					p[1] = (pixel >> 8) & 0xff;
 					p[2] = pixel & 0xff;
-				} else {
+				}
+				else
+				{
 					p[0] = pixel & 0xff;
 					p[1] = (pixel >> 8) & 0xff;
 					p[2] = (pixel >> 16) & 0xff;
