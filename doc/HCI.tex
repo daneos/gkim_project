@@ -12,11 +12,16 @@
 
 	\section{Obsługa programu}
 		\subsection{Kompilacja}
-			\subsubsection{GNU/Linux}
+			\subsubsection{GNU/Linux} \label{s:linux}
 				Aby skompilować program w systemie Linux należy mieć zainstalowany pakiet \code{libsdl2-dev} (lub odpowiednik w używanej dystrybucji).
 				Kompilacja przeprowadzana jest automatycznie przez skrypt \code{make.sh} dołączony do źródeł projektu.
+			\subsubsection{Mac OS X}
+				Program nie był testowany w środowisku Mac OS X, ale zakładając że w systemie są dostępne biblioteki SDL oraz kompilator gcc, skrypt
+				przeznaczony dla systemu Linux powinien również działać.
 			\subsubsection{Windows}
-				Aby skompilować program w systemie Windows należy sformatować dysk twardy, zainstalować Linuxa oraz wykonać kroki z punktu 1.1.1.
+				Aby skompilować program w systemie Windows należy otworzyć plik \code{cb-project/hciconv.cbp} w programie Code::Blocks,
+				ustawić odpowiednie ścieżki dla biblioteki SDL oraz plików wyjściowych a następnie uruchomić kompilację.\\
+				Jednakże łatwiej, szybciej i lepiej będzie sformatować dysk twardy, zainstalować Linuxa oraz wykonać kroki z punktu \ref{s:linux}.
 		\subsection{Obsługa}
 			Program obsługiwany jest z linii poleceń. Przyjmuje różną ilość argumentów, w zależności od akcji, którą chcemy wykonać.\\
 			Wywołanie programu z trzema argumentami powduje uruchomienie konwersji z \code{.bmp} na \code{.hci}.\\
