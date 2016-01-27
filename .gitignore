@@ -44,10 +44,11 @@ hciconv
 # Weird stuff
 bin/*
 
-# Probably something from CB
-*.cbp
+# Code::Blocks files
 *.depend
 *.layout
+cb-project/bin/*
+cb-project/obj/*
 
 # TeX files
 *.aux
