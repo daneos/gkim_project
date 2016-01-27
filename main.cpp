@@ -1,3 +1,14 @@
+/**
+ * @package hciconv
+ * @file Program's main file
+ * Projekt GKIM
+ * Grzegorz Kowalski
+ * Bartosz Zielnik
+ * Piotr Mańkowski
+ * Dariusz Szyszlak
+ * version 1 | 01.2016
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <inttypes.h>

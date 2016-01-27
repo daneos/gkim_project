@@ -1,10 +1,21 @@
+/**
+ * @package Byte-packing encoder/decoder
+ * @file Implementation file
+ * Projekt GKIM
+ * Grzegorz Kowalski
+ * Bartosz Zielnik
+ * Piotr Mańkowski
+ * Dariusz Szyszlak
+ * version 1 | 01.2016
+ */
+
 #include "packer.h"
 
 /**
- * Save conv_bmp structure into binary file
- * @param filepath path for binary file
+ * Convert conv_bmp into byte-packed array
  * @param new_bmp structure which holds BMP essentials
- * @return true if all done correctly
+ * @param size pointer to variable to hold the size of packed data
+ * @return packed array
  */
 uint8_t *pack(conv_bmp* new_bmp, int *size)
 {
@@ -32,10 +43,11 @@ uint8_t *pack(conv_bmp* new_bmp, int *size)
 }
 
 /**
- * Load binary file to conv_bmp structure
- * @param filepath path for binary file
- * @param new_bmp structure which holds BMP essentials
- * @return true if all done correctly
+ * Unpack byte-packed array into the conv_bmp structure
+ * @param width width of the image
+ * @param height height of the image
+ * @param data packed data
+ * @return unpacked conv_bmp structure
  */
 conv_bmp *unpack(int width, int height, uint8_t *data)
 {

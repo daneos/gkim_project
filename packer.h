@@ -1,3 +1,14 @@
+/**
+ * @package Byte-packing encoder/decoder
+ * @file Declaration file
+ * Projekt GKIM
+ * Grzegorz Kowalski
+ * Bartosz Zielnik
+ * Piotr Mańkowski
+ * Dariusz Szyszlak
+ * version 1 | 01.2016
+ */
+
 #if !defined(__PACKER_H__)
 #	define __PACKER_H___
 

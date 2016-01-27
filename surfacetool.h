@@ -1,3 +1,14 @@
+/**
+ * @package SDL surface tools
+ * @file Declaration file
+ * Projekt GKIM
+ * Grzegorz Kowalski
+ * Bartosz Zielnik
+ * Piotr Mańkowski
+ * Dariusz Szyszlak
+ * version 1 | 01.2016
+ */
+
 #if !defined(__SURFACETOOL_H__)
 #	define __SURFACETOOL_H___
 

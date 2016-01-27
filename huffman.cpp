@@ -4,7 +4,7 @@
  * Projekt GKIM
  * Grzegorz Kowalski
  * Bartosz Zielnik
- * Piotr Mañkowski
+ * Piotr MaÅ„kowski
  * Dariusz Szyszlak
  * version 1 | 01.2016
  */

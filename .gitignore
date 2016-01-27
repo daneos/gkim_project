@@ -53,3 +53,6 @@ bin/*
 *.aux
 *.log
 *.pdf
+
+# Generated docs
+doc/html/*

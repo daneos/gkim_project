@@ -1,3 +1,14 @@
+/**
+ * @package BMP image tools
+ * @file Implementation file
+ * Projekt GKIM
+ * Grzegorz Kowalski
+ * Bartosz Zielnik
+ * Piotr Mańkowski
+ * Dariusz Szyszlak
+ * version 1 | 01.2016
+ */
+
 #include "bmptool.h"
 
 /**
